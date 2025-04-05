@@ -162,8 +162,8 @@ if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
                             </div>
                         </div>
                     <?php else: ?>
-                        <a href="login.php" class="text-gray-700 hover:text-blue-600 transition duration-300 mr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md px-2 py-1">Login</a>
-                        <a href="register.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500">Register</a>
+                        <!-- <a href="login.php" class="text-gray-700 hover:text-blue-600 transition duration-300 mr-4 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md px-2 py-1">Login</a> -->
+                        <a href="login.php" class="btn-bg text-white px-4 py-2 rounded-md transition duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500">Login / Register</a>
                     <?php endif; ?>
                     
                     <!-- Mobile Menu Button -->
@@ -184,13 +184,7 @@ if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
                 role="menu"
                 aria-labelledby="mobile-menu-button">
                 <div class="py-3 space-y-1 border-t">
-                    <a href="index.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Home</a>
-                    <a href="explore.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Explore</a>
-                    <a href="explore.php?type=room" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 pl-8">Rooms</a>
-                    <a href="explore.php?type=roommate" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 pl-8">Roommates</a>
-                    <a href="explore.php?type=pg" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 pl-8">PG Accommodations</a>
-                    <a href="about.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600">About</a>
-                    <a href="contact.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600">Contact</a>
+                    
                     
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <div class="border-t border-gray-100 my-1"></div>

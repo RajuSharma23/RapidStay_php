@@ -1,14 +1,14 @@
 </main>
     
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white pt-12 pb-6">
-        <div class="container mx-auto px-4">
+    <footer class="footer text-white pt-12 pb-6">
+        <div class="container m-l-r mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Company Info -->
                 <div>
                     <div class="flex items-center mb-4">
-                        <img src="assets/images/logo-white.png" alt="RapidStay" class="h-8">
-                        <span class="ml-2 text-xl font-bold">RapidStay</span>
+                        <img src="assets/images/footer-logo.png" alt="RapidStay" class="h-8">
+                        <!-- <span class="ml-2 text-xl font-bold">RapidStay</span> -->
                     </div>
                     <p class="text-gray-400 mb-4">
                         Find your perfect stay with RapidStay - connecting people with comfortable accommodations since 2023.
@@ -82,7 +82,7 @@
     </footer>
     
     <!-- Back to Top Button -->
-    <button id="back-to-top" class="fixed bottom-6 right-6 bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+    <button id="back-to-top" class="fixed bottom-6 btn-bg right-6 bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
         <i class="fas fa-chevron-up"></i>
     </button>
     

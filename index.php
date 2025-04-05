@@ -21,8 +21,10 @@ $cities_result = mysqli_query($conn, $cities_query);
 include 'includes/header.php';
 ?>
 
+<link rel="stylesheet" href="assets/css/styles.css">
+
 <!-- Hero Section -->
-<section class="relative w-full h-[600px] bg-cover bg-center" style="background-image: url('assets/images/hero-bg.jpg');">
+<section class="relative w-full Hero-Section bg-cover bg-center" style="background-image: url('assets/images/hero-bg.jpg');">
     <div class="absolute inset-0 bg-black bg-opacity-40"></div>
     <div class="container mx-auto px-4 h-full flex flex-col justify-center items-center text-center relative z-10">
         <p class="text-white text-xl mb-2">Room for rent that fit your timeline</p>
@@ -55,7 +57,7 @@ include 'includes/header.php';
                     </div>
                 </div>
                 <div class="p-3">
-                    <button type="submit" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-md transition duration-300">
+                    <button type="submit" class="w-full md:w-auto bg-blue-600 btn-bg hover:bg-blue-700 text-white px-8 py-2 rounded-md transition duration-300">
                         Search
                     </button>
                 </div>
@@ -78,7 +80,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Rental Agreement Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 m-l-r">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row items-center gap-8">
             <div class="md:w-1/2">
@@ -87,25 +89,25 @@ include 'includes/header.php';
                     Save time and hassle with our streamlined rental agreement process. 
                     Create legally binding documents in minutes.
                 </p>
-                <a href="rental-agreement.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
+                <a href="rental-agreement.php" class="inline-block btn-bg bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
                     Create Now →
                 </a>
             </div>
             <div class="md:w-1/2">
-                <img src="assets/images/rental-agreement.svg" alt="Rental Agreement" class="w-full max-w-md mx-auto">
+                <img src="assets/images/Why-Choose-Signin-App-1024x832-1.png" alt="Rental Agreement" class="w-full max-w-md mx-auto">
             </div>
         </div>
     </div>
 </section>
 
 <!-- Premium Properties Section -->
-<section class="py-16">
+<section class="py-16 m-l-r">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row items-center gap-8">
             <div class="md:w-1/2 order-2 md:order-1">
                 <div class="grid grid-cols-2 gap-4">
-                    <img src="assets/images/premium-1.jpg" alt="Premium Property" class="w-full h-48 object-cover rounded-lg">
-                    <img src="assets/images/premium-2.jpg" alt="Premium Property" class="w-full h-48 object-cover rounded-lg">
+                    <img src="assets/images/premium-property.jpg" alt="Premium Property" class="w-full h-48 object-cover rounded-lg">
+                    <img src="assets/images/premium-property2.jpg" alt="Premium Property" class="w-full h-48 object-cover rounded-lg">
                 </div>
             </div>
             <div class="md:w-1/2 order-1 md:order-2">
@@ -114,7 +116,7 @@ include 'includes/header.php';
                     Discover our exclusive selection of high-end rental properties, 
                     featuring premium amenities and prime locations.
                 </p>
-                <a href="explore.php?premium=1" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
+                <a href="explore.php?premium=1" class="inline-block btn-bg bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
                     View Properties
                 </a>
             </div>
@@ -123,7 +125,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Featured Listings Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 m-l-r">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold mb-4">Featured Properties</h2>
@@ -132,7 +134,7 @@ include 'includes/header.php';
             </p>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2  lg:grid-cols-3 gap-8">
             <?php
             if (mysqli_num_rows($featured_result) > 0) {
                 while ($listing = mysqli_fetch_assoc($featured_result)) {
@@ -147,7 +149,7 @@ include 'includes/header.php';
         </div>
         
         <div class="text-center mt-10">
-            <a href="explore.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transition duration-300">
+            <a href="explore.php" class="inline-block bg-blue-600 btn-bg hover:bg-blue-700 text-white px-8 py-3 rounded-md transition duration-300">
                 Explore All Listings
             </a>
         </div>
@@ -155,7 +157,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Popular Cities Section -->
-<section class="py-16">
+<section class="py-16 m-l-r">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold mb-4">View rooms in Popular Cities</h2>
@@ -202,8 +204,8 @@ include 'includes/header.php';
             ?>
         </div>
         
-        <div class="text-center mt-10">
-            <a href="cities.php" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transition duration-300">
+        <div class="text-center mt-10 m-l-r view-btn">
+            <a href="cities.php" class="inline-block btn-bg bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-md transition duration-300">
                 View All Cities
             </a>
         </div>
@@ -211,7 +213,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Mobile App Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 m-l-r">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row items-center gap-8">
             <div class="md:w-1/2">
@@ -220,20 +222,20 @@ include 'includes/header.php';
                     Download the mobile app to search for rooms, connect with roommates, 
                     and manage your bookings on the go.
                 </p>
-                <a href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
+                <a href="#" class="inline-block btn-bg bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md transition duration-300">
                     Download Now
                 </a>
             </div>
             <div class="md:w-1/2">
-                <img src="assets/images/mobile-app.png" alt="Mobile App" class="w-full max-w-md mx-auto">
+                <img src="assets/images/rapidstay-app.jpg" alt="Mobile App" class="w-full max-w-md mx-auto">
             </div>
         </div>
     </div>
 </section>
 
 <!-- How It Works Section -->
-<section class="py-16">
-    <div class="container mx-auto px-4">
+<section class="py-16  ">
+    <div class="container  m-l-r mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold mb-4">How RapidStay Works</h2>
             <p class="text-gray-600 max-w-2xl mx-auto">
@@ -276,7 +278,7 @@ include 'includes/header.php';
 </section>
 
 <!-- Testimonials Section -->
-<section class="py-16 bg-gray-50">
+<section class="py-16 bg-gray-50 m-l-r">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-bold mb-4">What Our Users Say</h2>
@@ -286,7 +288,7 @@ include 'includes/header.php';
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-6 rounded-lg bordet shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-1.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>
@@ -305,7 +307,7 @@ include 'includes/header.php';
                 </p>
             </div>
             
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-6 bordet rounded-lg shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-2.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>
@@ -324,7 +326,7 @@ include 'includes/header.php';
                 </p>
             </div>
             
-            <div class="bg-white p-6 rounded-lg shadow-md">
+            <div class="bg-white p-6 bordet rounded-lg shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-3.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>

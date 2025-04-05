@@ -218,3 +218,68 @@ input[type="checkbox"]:checked + span {
 }
 
 
+.Hero-Section{
+  background: linear-gradient(rgba(47, 47, 105, 0.567), rgba(37, 37, 83, 0.91)),url('../images/hero-bg.jpg') ;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.btn-bg{
+  background-color: #4c57ef;
+  color: #fff;
+  /* padding: 8px 16px; */
+  /* border-radius: 5px;
+  border: none;
+  cursor: pointer; */
+
+}
+.bordet{
+  border-top:4px solid #4c57ef;
+}
+.search-btn{
+  background-color: #4c57ef;
+  color: #fff;
+  padding: 8px 32px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+.view-btn{
+  margin-top: 30px;
+
+
+  padding: 15px 32px;
+  
+}
+.btn-bg:hover{
+  /* background-color: #3b82f6; */
+  background-color: #6b7fff;
+  color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+
+}
+
+/* footer */
+.footer{
+  background-color: #070d5ef0;
+  
+}
+.footer-copyright{
+  background-color: #4c57ef;
+
+  color: #fff;
+  
+}
+
+.m-l-r{
+  max-width: 1400px;
+  margin: 0 auto;
+  
+}

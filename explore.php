@@ -126,7 +126,7 @@ include 'includes/header.php';
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Filters Sidebar -->
         <div class="lg:w-1/4">
-            <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
+            <div class="bg-white bordet rounded-lg shadow-md p-6 sticky top-24">
                 <h2 class="text-xl font-bold mb-4">Filters</h2>
                 
                 <form action="explore.php" method="GET" id="filter-form">

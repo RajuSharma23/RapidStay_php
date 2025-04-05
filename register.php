@@ -86,7 +86,7 @@ include 'includes/header.php';
 
 <div class="bg-gray-100 min-h-screen py-12">
     <div class="container mx-auto px-4">
-        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="max-w-md mx-auto bg-white bordet rounded-lg shadow-md overflow-hidden">
             <div class="p-6">
                 <?php if ($success): ?>
                     <div class="text-center mb-6">
@@ -227,13 +227,13 @@ include 'includes/header.php';
                         
                         <button 
                             type="submit" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
+                            class="w-full bg-blue-600 btn-bg hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300"
                         >
                             Create Account
                         </button>
                     </form>
                     
-                    <div class="mt-6 text-center">
+                    <div class="mt-6 text-center ">
                         <p class="text-gray-600">
                             Already have an account? 
                             <a href="login.php<?php echo isset($_GET['redirect']) ? '?redirect=' . urlencode($_GET['redirect']) : ''; ?>" class="text-blue-600 hover:underline font-medium">
