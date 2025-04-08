@@ -133,6 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Include header
 include '../includes/owner_header.php';
 ?>
+<link rel="stylesheet" href="../../assets/css/style.css">
+
 <style>
     .main-content{
         margin-left:200px;
@@ -157,7 +159,7 @@ include '../includes/owner_header.php';
         </div>
     <?php endif; ?>
     
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="bg-white border-top rounded-lg shadow-sm overflow-hidden">
         <div class="p-4 border-b">
             <h2 class="font-bold">PG Details</h2>
         </div>

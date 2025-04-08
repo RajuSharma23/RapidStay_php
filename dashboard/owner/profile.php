@@ -160,129 +160,241 @@ include '../includes/owner_header.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile Management</title>
     <style>
-        
-        
         .container {
             max-width: 1200px;
-           
-            margin-left:250px;
+            margin-left: 250px;
+            
             background: white;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
-            /* margin-bottom: -200px; */
-
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            border-top: 4px solid #4c57ef;
         }
-        .owner-container{
+        
+        .owner-container {
             margin: 0 auto;
-
+            
         }
+        
         .profile-header {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            margin-top:50px;
+            margin-bottom: 30px;
+            margin-top: 20px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #f0f0f0;
         }
+        
         .profile-picture-container {
-            margin-right: 20px;
+            margin-right: 30px;
+            position: relative;
         }
+        
         .profile-picture {
-            width: 150px;
-            height: 150px;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
             object-fit: cover;
             border: 5px solid #f4f4f4;
-            background-color: #f8f9fa;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
         }
+        
+        .profile-picture:hover {
+            transform: scale(1.03);
+        }
+        
         .default-profile {
-            width: 150px;
-            height: 150px;
+            width: 160px;
+            height: 160px;
             border-radius: 50%;
-            background-color: #ddd;
+            background: linear-gradient(135deg, #4c57ef, #3b82f6);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 50px;
-            color: #777;
+            font-size: 60px;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+        
         .profile-info {
             display: flex;
             flex-direction: column;
         }
-        h1 {
+        
+        .profile-info h1 {
             color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
         }
+        
+        .profile-info p {
+            color: #64748b;
+            font-size: 16px;
+        }
+        
         .tabs {
             display: flex;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e2e8f0;
+            gap: 8px;
         }
+        
         .tab {
-            padding: 10px 15px;
+            padding: 12px 20px;
             cursor: pointer;
-            margin-right: 10px;
+            margin-right: 5px;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        
+        .tab:hover {
+            color: #4c57ef;
+            background-color: #f8fafc;
+        }
+        
         .tab.active {
-            border-bottom: 2px solid #3498db;
-            color: #3498db;
+            border-bottom: 3px solid #4c57ef;
+            color: #4c57ef;
+            background-color: #f8fafc;
         }
+        
         .tab-content {
             display: none;
+            animation: fadeIn 0.4s ease-in-out;
+            padding: 10px;
         }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .tab-content.active {
             display: block;
         }
-        .form-group {
-            margin-bottom: 15px;
+        
+        .tab-content h2 {
+            margin-bottom: 20px;
+            color: #334155;
+            font-weight: 600;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e2e8f0;
         }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #475569;
         }
+        
         input[type="text"],
         input[type="email"],
         input[type="tel"],
         input[type="password"] {
             width: 100%;
-            padding: 8px;
+            padding: 12px 15px;
             box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
         }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="password"]:focus {
+            border-color: #4c57ef;
+            box-shadow: 0 0 0 3px rgba(76, 87, 239, 0.1);
+            outline: none;
+        }
+        
         .btn {
-            background-color: #3498db;
+            background: linear-gradient(to right, #4c57ef, #3b82f6);
             color: white;
             border: none;
-            padding: 10px 15px;
+            padding: 12px 24px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(76, 87, 239, 0.12);
         }
+        
         .btn:hover {
-            background-color: #2980b9;
+            background: linear-gradient(to right, #3b45d9, #2563eb);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(76, 87, 239, 0.15);
         }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
         .message {
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            position: relative;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .success {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
         }
+        
         .error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
         }
+        
         .profile-picture-upload {
             margin: 20px 0;
         }
+        
         .profile-picture-upload input[type="file"] {
-            border: 1px solid #ddd;
-            padding: 10px;
-            border-radius: 4px;
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 8px;
             width: 100%;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-picture-upload input[type="file"]:hover {
+            border-color: #4c57ef;
+            background: #f1f5f9;
+        }
+        
+        .fade-out {
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
     </style>
 </head>
@@ -315,9 +427,15 @@ include '../includes/owner_header.php';
             </div>
 
             <div class="tabs">
-                <div class="tab active" data-tab="profile">Profile Information</div>
-                <div class="tab" data-tab="password">Change Password</div>
-                <div class="tab" data-tab="picture">Profile Picture</div>
+                <div class="tab active" data-tab="profile">
+                    <i class="fas fa-user"></i> Profile Information
+                </div>
+                <div class="tab" data-tab="password">
+                    <i class="fas fa-key"></i> Change Password
+                </div>
+                <div class="tab" data-tab="picture">
+                    <i class="fas fa-camera"></i> Profile Picture
+                </div>
             </div>
 
             <div class="tab-content active" id="profile">

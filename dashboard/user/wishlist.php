@@ -27,10 +27,19 @@ $wishlist_result = mysqli_query($conn, $wishlist_query);
 // Include header
 include '../includes/user_header.php';
 ?>
+<style>
+    .main{
+        margin-left:250px;
+        
+    }
+    .header{
+        margin-top:100px;
+    }
+</style>
 
 <!-- Main Content -->
-<div class="flex-1 p-8 overflow-auto">
-    <div class="mb-8 flex justify-between items-center">
+<div class="main flex-1 p-8 overflow-auto">
+    <div class="mb-8 flex header justify-between items-center">
         <h1 class="text-2xl font-bold">My Wishlist</h1>
         <a href="../../explore.php" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
             <i class="fas fa-search mr-2"></i> Explore More PGs

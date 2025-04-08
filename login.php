@@ -91,7 +91,7 @@ include 'includes/header.php';
 
 <div class="bg-gray-100 min-h-screen  py-12">
     <div class="container mx-auto px-4">
-        <div class="max-w-md mx-auto bg-white bordet rounded-lg shadow-md overflow-hidden">
+        <div class="max-w-md mx-auto bg-white border-top rounded-lg shadow-md overflow-hidden">
             <div class="p-6">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>

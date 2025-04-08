@@ -53,7 +53,7 @@ if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
     <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
     
     <!-- Preload critical assets -->
-    <link rel="preload" href="assets/images/logo.png" as="image">
+    <!-- <link rel="preload" href="assets/images/logo.png" as="image"> -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" as="style">
     
     <!-- Stylesheets -->
@@ -136,24 +136,22 @@ if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
                                             <i class="fas fa-calendar-check mr-2" aria-hidden="true"></i> Booking Requests
                                         </a>
                                     <?php elseif ($_SESSION['user_type'] === 'tenant'): ?>
-                                        <a href="dashboard/tenant/index.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
+                                        <a href="dashboard/user/index.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
                                             <i class="fas fa-tachometer-alt mr-2" aria-hidden="true"></i> My Dashboard
                                         </a>
-                                        <a href="dashboard/tenant/bookings.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
+                                        <a href="dashboard/user/bookings.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
                                             <i class="fas fa-calendar-alt mr-2" aria-hidden="true"></i> My Bookings
                                         </a>
-                                        <a href="dashboard/tenant/wishlist.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
+                                        <a href="dashboard/user/wishlist.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
                                             <i class="fas fa-heart mr-2" aria-hidden="true"></i> My Wishlist
                                         </a>
-                                        <a href="dashboard/tenant/roommates.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
+                                        <a href="dashboard/user/roommates.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
                                             <i class="fas fa-user-friends mr-2" aria-hidden="true"></i> Find Roommate
                                         </a>
                                     <?php endif; ?>
 
                                     <!-- Common menu items for all user types -->
-                                    <a href="profile.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
-                                        <i class="fas fa-user-circle mr-2" aria-hidden="true"></i> My Profile
-                                    </a>
+                                    
                                     <div class="border-t border-gray-100 my-1" role="separator"></div>
                                     <a href="logout.php" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600 focus:outline-none" role="menuitem">
                                         <i class="fas fa-sign-out-alt mr-2" aria-hidden="true"></i> Logout

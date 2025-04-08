@@ -63,15 +63,20 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
 
 
 ?>
+<link rel="stylesheet" href="../../assets/css/style.css">
+
 <style>
     #main{
         
         display: flex;
         position: relative;
+        position: absolute;
+        position:inline-block;
+
     }
     .main-item{
         margin-top: 50px;
-        margin-left:250px;
+        /* margin-left:250px; */
 
         
     }
@@ -92,8 +97,8 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
         
         <!-- Statistics Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
+                <div class="flex  items-center">
                     <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
                         <i class="fas fa-users"></i>
                     </div>
@@ -104,7 +109,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
                 </div>
             </div>
             
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white  border-top rounded-lg shadow-sm p-6">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
                         <i class="fas fa-user-tie"></i>
@@ -116,7 +121,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
                 </div>
             </div>
             
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
                         <i class="fas fa-home"></i>
@@ -128,7 +133,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
                 </div>
             </div>
             
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 mr-4">
                         <i class="fas fa-clock"></i>
@@ -140,7 +145,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
                 </div>
             </div>
             
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-red-100 text-red-600 mr-4">
                         <i class="fas fa-calendar-check"></i>
@@ -156,7 +161,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
         <!-- Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Recent PG Listings -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-bold">Recent PG Listings</h2>
                     <a href="pg-listings.php" class="text-blue-600 hover:underline text-sm">View All</a>
@@ -202,7 +207,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
             </div>
             
             <!-- Recent Bookings -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white border-top rounded-lg shadow-sm p-6">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-lg font-bold">Recent Bookings</h2>
                     <a href="bookings.php" class="text-blue-600 hover:underline text-sm">View All</a>

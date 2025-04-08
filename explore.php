@@ -126,7 +126,7 @@ include 'includes/header.php';
     <div class="flex flex-col lg:flex-row gap-8">
         <!-- Filters Sidebar -->
         <div class="lg:w-1/4">
-            <div class="bg-white bordet rounded-lg shadow-md p-6 sticky top-24">
+            <div class="bg-white border-top rounded-lg shadow-md p-6 sticky top-24">
                 <h2 class="text-xl font-bold mb-4">Filters</h2>
                 
                 <form action="explore.php" method="GET" id="filter-form">
@@ -291,7 +291,7 @@ include 'includes/header.php';
                 
             <?php else: ?>
                 <!-- No Results -->
-                <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                <div class="bg-white rounded-lg border-top shadow-md p-8 text-center">
                     <div class="text-gray-400 mb-4">
                         <i class="fas fa-search fa-3x"></i>
                     </div>

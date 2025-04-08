@@ -372,6 +372,25 @@ include '../includes/owner_header.php';
             color: #C01C1C;
             
         }
+        .Revenue{
+            background-color: #F0FDF4;
+            border-top: 4px solid #16A34A;
+        }
+        .Revenue-text{
+            color: #166534;
+        }
+        .Revenue-confirmed{
+            background-color: #ECFDF5;
+            border-top: 4px solid #059669;
+        }
+        .Revenue-pending{
+            background-color: #FFFBEB;
+            border-top: 4px solid #D97706;
+        }
+        .Revenue-completed{
+            background-color: #E0F2FE;
+            border-top: 4px solid #0284C7;
+        }
         @media (max-width: 1200px) {
             .container {
                 width: calc(100% - 250px);
@@ -561,7 +580,7 @@ include '../includes/owner_header.php';
             <h1>Booking Overview</h1>
             <div class="summary-box-conteiner">
             <?php
-            // Get booking statistics
+            // Get booking statistics based on the current user's bookings
             $stats = [
                 'total' => 0,
                 'confirmed' => 0,
@@ -570,12 +589,53 @@ include '../includes/owner_header.php';
                 'completed' => 0
             ];
             
-            $statsSql = "SELECT status, COUNT(*) as count FROM bookings GROUP BY status";
-            $statsResult = $conn->query($statsSql);
+            $owner_id = $_SESSION['user_id'];
             
-            while ($statsRow = $statsResult->fetch_assoc()) {
-                $stats[$statsRow['status']] = $statsRow['count'];
-                $stats['total'] += $statsRow['count'];
+            // Get the listings connected to this owner using DESCRIBE to find the right column
+            $describe_sql = "DESCRIBE listings";
+            $describe_result = $conn->query($describe_sql);
+            $owner_column = 'user_id'; // default guess
+            
+            if ($describe_result) {
+                while ($row = $describe_result->fetch_assoc()) {
+                    if (in_array($row['Field'], ['owner_id', 'user_id', 'created_by', 'host_id'])) {
+                        $owner_column = $row['Field'];
+                        break;
+                    }
+                }
+            }
+            
+            $listings_sql = "SELECT id FROM listings WHERE $owner_column = $owner_id";
+            $listings_result = $conn->query($listings_sql);
+            
+            if ($listings_result && $listings_result->num_rows > 0) {
+                // Create array of listing IDs
+                $listing_ids = [];
+                while ($listing = $listings_result->fetch_assoc()) {
+                    $listing_ids[] = $listing['id'];
+                }
+                
+                // Convert array to comma-separated string for SQL IN clause
+                $listings_str = implode(',', $listing_ids);
+                
+                // Get total bookings
+                $total_sql = "SELECT COUNT(*) as count FROM bookings WHERE listing_id IN ($listings_str)";
+                $total_result = $conn->query($total_sql);
+                if ($total_result && $row = $total_result->fetch_assoc()) {
+                    $stats['total'] = $row['count'];
+                }
+                
+                // Get count by status
+                $statsSql = "SELECT status, COUNT(*) as count FROM bookings 
+                            WHERE listing_id IN ($listings_str)
+                            GROUP BY status";
+                $statsResult = $conn->query($statsSql);
+                
+                if ($statsResult) {
+                    while ($statsRow = $statsResult->fetch_assoc()) {
+                        $stats[$statsRow['status']] = $statsRow['count'];
+                    }
+                }
             }
             ?>
             <div class="summary-box Total-Bookings">
@@ -597,6 +657,60 @@ include '../includes/owner_header.php';
             <div class="summary-box Cancelled">
                 <div class="summary-title Cancelled-text">Cancelled</div>
                 <div class="summary-value"><?php echo $stats['cancelled'] ?? 0; ?></div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Financial Overview Section -->
+        <div class="summary-container">
+            <h1>Financial Overview</h1>
+            <div class="summary-box-conteiner">
+            <?php
+            // Get financial statistics based on the current user's bookings
+            $revenue = [
+                'total' => 0,
+                'confirmed' => 0,
+                'pending' => 0,
+                'completed' => 0
+            ];
+            
+            if (isset($listings_str) && !empty($listings_str)) {
+                // Get total revenue
+                $total_revenue_sql = "SELECT SUM(total_amount) as total FROM bookings WHERE listing_id IN ($listings_str)";
+                $total_revenue_result = $conn->query($total_revenue_sql);
+                if ($total_revenue_result && $row = $total_revenue_result->fetch_assoc()) {
+                    $revenue['total'] = $row['total'] ?: 0;
+                }
+                
+                // Get revenue by status
+                $revenue_sql = "SELECT status, SUM(total_amount) as total 
+                              FROM bookings 
+                              WHERE listing_id IN ($listings_str) 
+                              GROUP BY status";
+                $revenue_result = $conn->query($revenue_sql);
+                
+                if ($revenue_result) {
+                    while ($revenue_row = $revenue_result->fetch_assoc()) {
+                        $revenue[$revenue_row['status']] = $revenue_row['total'];
+                    }
+                }
+            }
+            ?>
+            <div class="summary-box Revenue">
+                <div class="summary-title Revenue-text">Total Revenue</div>
+                <div class="summary-value">$<?php echo number_format($revenue['total'], 2); ?></div>
+            </div> 
+            <div class="summary-box Revenue-confirmed">
+                <div class="summary-title Confirmed-text">Confirmed Revenue</div>
+                <div class="summary-value">$<?php echo number_format($revenue['confirmed'] ?? 0, 2); ?></div>
+            </div>
+            <div class="summary-box Revenue-pending">
+                <div class="summary-title Pending-text">Pending Revenue</div>
+                <div class="summary-value">$<?php echo number_format($revenue['pending'] ?? 0, 2); ?></div>
+            </div>
+            <div class="summary-box Revenue-completed">
+                <div class="summary-title Completed-text">Completed Revenue</div>
+                <div class="summary-value">$<?php echo number_format($revenue['completed'] ?? 0, 2); ?></div>
             </div>
             </div>
         </div>

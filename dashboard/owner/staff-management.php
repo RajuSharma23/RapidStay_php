@@ -353,6 +353,8 @@ include '../includes/owner_header.php';
         border-left: 4px solid #dc2626;
     }
 </style>
+<link rel="stylesheet" href="../../assets/css/style.css">
+
 
 <!-- Main Content -->
 <div class="flex-1 main-content p-8 overflow-auto">
@@ -369,7 +371,7 @@ include '../includes/owner_header.php';
     <?php endif; ?>
     
     <!-- Staff Statistics -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+    <div class="bg-white border-top rounded-lg shadow-sm p-6 mb-8">
         <h2 class="text-lg font-bold mb-4">Staff Overview</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -454,7 +456,7 @@ include '../includes/owner_header.php';
     </div>
     
     <!-- Staff Management -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
+    <div class="bg-white border-top rounded-lg shadow-sm overflow-hidden mb-8">
         <div class="flex justify-between items-center p-4 border-b">
             <div class="flex items-center gap-4">
                 <h2 class="font-bold">Your Staff Members</h2>
@@ -616,8 +618,8 @@ include '../includes/owner_header.php';
     </div>
     
     <!-- Add Staff Modal -->
-    <div id="addStaffModal" class="modal">
-        <div class="modal-content">
+    <div id="addStaffModal" class="modal ">
+        <div class="modal-content border-top">
             <span class="close-modal" onclick="closeAddStaffModal()">&times;</span>
             <h2 class="text-xl font-bold mb-4">Add New Staff Member</h2>
             
@@ -747,7 +749,7 @@ include '../includes/owner_header.php';
     
     <!-- Edit Staff Modal -->
     <div id="editStaffModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content border-top">
             <span class="close-modal" onclick="closeEditStaffModal()">&times;</span>
             <h2 class="text-xl font-bold mb-4">Edit Staff Details</h2>
             

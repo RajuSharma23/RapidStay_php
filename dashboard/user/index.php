@@ -66,12 +66,25 @@ include '../includes/user_header.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
+    <style>
+        #main{
+        display: flex;
+        /* position: relative; */
+    }
+    .main-item{
+        margin-top: 50px;
+        margin-left:250px;
+
+        
+    }
+    </style>
 </head>
 <body>
-    <div class="main"></div>
-
+    <div id="main">
+ 
 <!-- Main Content -->
-<div class="flex-1 p-8 overflow-auto">
+<div class="main-item flex-1 p-8 overflow-auto">
     <div class="mb-8">
         <h1 class="text-2xl font-bold mb-2">User Dashboard</h1>
         <p class="text-gray-600">Welcome back, <?php echo htmlspecialchars($user['name']); ?>!</p>
@@ -301,6 +314,7 @@ include '../includes/user_header.php';
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <?php

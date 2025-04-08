@@ -1,5 +1,5 @@
 <a href="listing.php?id=<?php echo $listing['id']; ?>" class="block group">
-    <div class="bg-white bordet rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition duration-300 h-full">
+    <div class="bg-white border-top rounded-lg overflow-hidden shadow-sm group-hover:shadow-md transition duration-300 h-full">
         <div class="relative">
             <div class="h-48 overflow-hidden">
                 <img 

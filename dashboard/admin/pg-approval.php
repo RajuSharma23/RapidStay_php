@@ -127,40 +127,43 @@ include '../includes/admin_header.php';
 <style>
     .main-item{
         margin-top: 50px;
-        margin-left:250px;
+        margin-left:-250px;
 
         
     }
-    .user-item{
-        margin-left:200px;
-        /* margin-right:800px; */
-    }
-    .overflow-auto{
-        
-    }
+    
+/* Add these styles in your existing <style> section */
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+}
+
+.notification-slide-in {
+    animation: slideIn 0.5s forwards;
+}
+
+.notification-slide-out {
+    animation: slideOut 0.5s forwards;
+}
 </style>
+<link rel="stylesheet" href="../../assets/css/style.css">
 
 <!-- Main Content -->
 <div class="flex-1 p-8  overflow-auto">
-    <div class="mb-8 main-item ">
+    <div class="mb-8  ">
         <h1 class="text-2xl font-bold">PG Approval System</h1>
         <p class="text-gray-600">Review and approve PG listings submitted by owners</p>
     </div>
     
-    <?php if (!empty($message)): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            <?php echo $message; ?>
-        </div>
-    <?php endif; ?>
     
-    <?php if (!empty($error)): ?>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <?php echo $error; ?>
-        </div>
-    <?php endif; ?>
     
     <!-- Pending PG Listings -->
-    <div class="bg-white rounded-lg shadow-sm user-item overflow-hidden">
+    <div class="bg-white border-top rounded-lg shadow-sm  overflow-hidden">
         <div class="p-4 border-b flex justify-between items-center">
             <h2 class="font-bold">Pending PG Listings</h2>
             <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
@@ -343,6 +346,59 @@ include '../includes/admin_header.php';
     function closeRejectModal() {
         document.getElementById('reject-modal').classList.add('hidden');
     }
+
+    // Add this to your existing script section
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we need to show a notification
+        <?php if (!empty($message) && $message == "PG listing has been approved successfully."): ?>
+            showNotification("<?php echo $message; ?>", "success");
+        <?php endif; ?>
+        
+        // Notification function with slide animation
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 -right-full p-4 rounded-lg shadow-lg z-50 transition-all duration-500 transform';
+            
+            // Style based on notification type
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500', 'text-white');
+            }
+            
+            // Add message and dismiss button
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>${message}</span>
+                    <button class="ml-4 text-white hover:text-gray-200" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Trigger slide-in animation
+            setTimeout(() => {
+                notification.classList.remove('-right-full');
+                notification.classList.add('right-4');
+            }, 100);
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                notification.classList.remove('right-4');
+                notification.classList.add('-right-full');
+                
+                // Remove from DOM after animation completes
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }, 5000);
+        }
+    });
 </script>
 
 <?php

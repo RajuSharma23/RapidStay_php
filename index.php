@@ -7,7 +7,7 @@ require_once 'includes/db_connect.php';
 
 // Fetch featured listings
 $featured_query = "SELECT l.*, 
-                    (SELECT image_url FROM listing_images WHERE listing_id = l.id AND is_primary = 1 LIMIT 1) as primary_image 
+                    (SELECT image_url FROM listing_images WHERE listing_id = l.id AND is_primary = 3 LIMIT 3) as primary_image 
                   FROM listings l 
                   WHERE l.is_featured = 1 
                   LIMIT 6";
@@ -31,7 +31,7 @@ include 'includes/header.php';
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-8">Discover a place you'll love</h1>
         
         <!-- Search Bar -->
-        <div class="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="w-full max-w-3xl bg-white border-top rounded-lg shadow-lg overflow-hidden">
             <form action="explore.php" method="GET" class="flex flex-col md:flex-row">
                 <div class="flex-1 p-3 border-b md:border-b-0 md:border-r border-gray-200">
                     <div class="flex items-center">
@@ -66,13 +66,13 @@ include 'includes/header.php';
         
         <!-- Quick Links -->
         <div class="flex flex-wrap justify-center gap-4 mt-8">
-            <a href="explore.php?type=room" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
+            <a href="explore.php?type=room" class="bg-white bg-opacity-20 border-top hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
                 Rooms
             </a>
-            <a href="explore.php?type=roommate" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
+            <a href="explore.php?type=roommate" class="bg-white bg-opacity-20 border-top hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
                 Roommates
             </a>
-            <a href="explore.php?type=pg" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
+            <a href="explore.php?type=pg" class="bg-white bg-opacity-20 border-top hover:bg-opacity-30 text-white px-6 py-2 rounded-full transition duration-300">
                 PG Accommodations
             </a>
         </div>
@@ -288,7 +288,7 @@ include 'includes/header.php';
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white p-6 rounded-lg bordet shadow-md">
+            <div class="bg-white p-6 rounded-lg border-top shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-1.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>
@@ -307,7 +307,7 @@ include 'includes/header.php';
                 </p>
             </div>
             
-            <div class="bg-white p-6 bordet rounded-lg shadow-md">
+            <div class="bg-white p-6 border-top rounded-lg shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-2.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>
@@ -326,7 +326,7 @@ include 'includes/header.php';
                 </p>
             </div>
             
-            <div class="bg-white p-6 bordet rounded-lg shadow-md">
+            <div class="bg-white p-6 border-top rounded-lg shadow-md">
                 <div class="flex items-center mb-4">
                     <img src="assets/images/testimonial-3.jpg" alt="User" class="w-12 h-12 rounded-full mr-4">
                     <div>

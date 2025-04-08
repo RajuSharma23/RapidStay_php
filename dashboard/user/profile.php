@@ -133,9 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Include header
 include '../includes/user_header.php';
 ?>
-
+<style>
+    .main {
+        margin-left: 250px;
+    }
+</style>
 <!-- Main Content -->
-<div class="flex-1 p-8 overflow-auto">
+<div class=" main flex-1 p-8 overflow-auto">
     <div class="mb-8">
         <h1 class="text-2xl font-bold">My Profile</h1>
         <p class="text-gray-600">Manage your personal information and account settings</p>

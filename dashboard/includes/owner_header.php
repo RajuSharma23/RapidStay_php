@@ -101,7 +101,7 @@
                             Add New PG
                         </a>
                         
-                        <a href="../owner/bookings.php" class="flex items-center px-4 py-2 text-white rounded-md hover:bg-green-700 <?php echo basename($_SERVER['PHP_SELF']) == 'bookings.php' ? 'bg-green-700' : ''; ?>">
+                        <a href="../owner/booking-requests.php" class="flex items-center px-4 py-2 text-white rounded-md hover:bg-green-700 <?php echo basename($_SERVER['PHP_SELF']) == 'bookings.php' ? 'bg-green-700' : ''; ?>">
                             <i class="fas fa-calendar-check mr-3"></i>
                             Booking Requests
                         </a>

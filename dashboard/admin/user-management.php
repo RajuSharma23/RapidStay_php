@@ -103,21 +103,10 @@ $users_result = mysqli_query($conn, $users_query);
 // Include header
 include '../includes/admin_header.php';
 ?>
-<style>
-    .main-item{
-        margin-top: 50px;
-        margin-left:250px;
+<link rel="stylesheet" href="../../assets/css/style.css">
 
-        
-    }
-    .user-item{
-        margin-left:200px;
-        /* margin-right:800px; */
-    }
-    .overflow-auto{
-        
-    }
-</style>
+
+
 <!-- Main Content -->
 <div class="flex-1  p-8 overflow-auto">
     <div class="mb-8 flex main-item justify-between items-center">
@@ -140,7 +129,7 @@ include '../includes/admin_header.php';
     <?php endif; ?>
     
     <!-- Users Table -->
-    <div class="bg-white rounded-lg shadow-sm user-item overflow-hidden">
+    <div class="bg-white  border-top rounded-lg shadow-sm user-item overflow-hidden">
         <div class="p-4 border-b">
             <h2 class="font-bold">All Users</h2>
         </div>

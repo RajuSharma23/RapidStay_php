@@ -19,9 +19,38 @@
     
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+    .side-navbar{
+            position: fixed;
+        }
+        #user-menu-button{
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color:rgb(15, 89, 216); /* Tailwind gray-700 */
+            margin-left:80px;
+            margin-top: 20px;
+
+            
+
+        }
+        .user-icon{
+            width: 80px;
+            height: 80px;
+        }
+        .user-name{
+            font-size: 20px;
+            color: white;
+            margin-left: 55px;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+</style>
+
 </head>
 <body class="bg-gray-100">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex  side-navbar h-screen overflow-hidden">
         <!-- Sidebar -->
         <div class="hidden md:flex md:flex-shrink-0">
             <div class="flex flex-col w-64 bg-blue-800">
@@ -29,12 +58,42 @@
                 <div class="flex items-center justify-center h-16 px-4 bg-blue-900">
                     <a href="../user/index.php" class="flex items-center">
                         <img src="../../assets/images/footer-logo.png" alt="RapidStay" class="h-8">
-                        <span class="ml-2 text-xl font-bold text-white">RapidStay</span>
+                        <!-- <span class="ml-2 text-xl font-bold text-white">RapidStay</span> -->
                     </a>
                 </div>
                 
                 <!-- Sidebar Navigation -->
                 <div class="flex flex-col flex-1 overflow-y-auto">
+
+                <button 
+                        class="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1" 
+                        id="user-menu-button"
+                        aria-expanded="false"
+                        aria-haspopup="true"
+                    >
+                        
+                        <?php if (isset($_SESSION['user_profile_image']) && !empty($_SESSION['user_profile_image'])): ?>
+                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_image']); ?>" 
+                                 alt="Profile" 
+                                 class="w-8 h-8  rounded-full object-cover">
+                        <?php else: ?>
+                            <div class=" user-icon rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                                <i class="fas fa-user "></i>
+                            </div>
+                        <?php endif; ?>
+                    <!-- Page Title -->
+                <h1 class="text-lg font-semibold md:hidden">
+                    <?php
+                    $page = basename($_SERVER['PHP_SELF'], '.php');
+                    $page_title = ucwords(str_replace('-', ' ', $page));
+                    echo $page_title == 'Index' ? 'Dashboard' : $page_title;
+                    ?>
+                </h1>
+                    </button>
+ 
+                    <span class="mr-2 text-sm user-name font-medium text-gray-700 hidden md:block">
+                            <?php echo isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'User'; ?>
+                        </span>
                     <nav class="flex-1 px-2 py-4 space-y-1">
                         <a href="../user/index.php" class="flex items-center px-4 py-2 text-white rounded-md hover:bg-blue-700 <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'bg-blue-700' : ''; ?>">
                             <i class="fas fa-tachometer-alt mr-3"></i>
@@ -87,7 +146,7 @@
                 <div class="flex items-center justify-center h-16 px-4 bg-blue-900">
                     <a href="../user/index.php" class="flex items-center">
                         <img src="../../assets/images/logo-white.png" alt="RapidStay" class="h-8">
-                        <span class="ml-2 text-xl font-bold text-white">RapidStay</span>
+                        <!-- <span class="ml-2 text-xl font-bold text-white">RapidStay</span> -->
                     </a>
                 </div>
                 
@@ -134,67 +193,7 @@
         
         <!-- Main Content -->
         <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Top Navigation -->
-            <div class="flex items-center justify-between h-16 px-4 bg-white border-b">
-                <!-- Mobile menu button -->
-                <button class="md:hidden text-gray-500 focus:outline-none" id="open-sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <!-- Page Title -->
-                <h1 class="text-lg font-semibold md:hidden">
-                    <?php
-                    $page = basename($_SERVER['PHP_SELF'], '.php');
-                    $page_title = ucwords(str_replace('-', ' ', $page));
-                    echo $page_title == 'Index' ? 'Dashboard' : $page_title;
-                    ?>
-                </h1>
-                
-                <!-- User Menu -->
-                <div class="relative ml-auto">
-                    <button 
-                        class="flex items-center focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1" 
-                        id="user-menu-button"
-                        aria-expanded="false"
-                        aria-haspopup="true"
-                    >
-                        <span class="mr-2 text-sm font-medium text-gray-700 hidden md:block">
-                            <?php echo isset($_SESSION['user_name']) ? htmlspecialchars($_SESSION['user_name']) : 'User'; ?>
-                        </span>
-                        <?php if (isset($_SESSION['user_profile_image']) && !empty($_SESSION['user_profile_image'])): ?>
-                            <img src="<?php echo htmlspecialchars($_SESSION['user_profile_image']); ?>" 
-                                 alt="Profile" 
-                                 class="w-8 h-8 rounded-full object-cover">
-                        <?php else: ?>
-                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        <?php endif; ?>
-                        <i class="fas fa-chevron-down ml-1 text-gray-500 text-xs transition-transform duration-200"></i>
-                    </button>
-                    
-                    <!-- Updated dropdown menu -->
-                    <div 
-                        id="user-menu-dropdown"
-                        class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 hidden transform opacity-0 scale-95 transition-all duration-200"
-                        role="menu"
-                        aria-orientation="vertical"
-                        aria-labelledby="user-menu-button"
-                    >
-                        <a href="../user/profile.php" 
-                           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors" 
-                           role="menuitem">
-                            <i class="fas fa-user-circle mr-2"></i> My Profile
-                        </a>
-                        <div class="border-t border-gray-100 my-1"></div>
-                        <a href="../../logout.php" 
-                           class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors" 
-                           role="menuitem">
-                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
-                        </a>
-                    </div>
-                </div>
-            </div>
+            
 </div>
 </div>
 
