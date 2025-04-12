@@ -6,7 +6,7 @@ $db_password = '';
 $db_name = 'rapid_stay';
 
 // Create connection
-$conn = mysqli_connect($db_host, $db_user, $db_password, $db_name);
+$conn = mysqli_connect($db_host, $db_user, $db_password, $db_name,4306);
 
 // Check connection
 if (!$conn) {

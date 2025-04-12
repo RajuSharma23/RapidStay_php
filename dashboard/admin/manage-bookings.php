@@ -76,6 +76,7 @@ include '../includes/admin_header.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Management</title>
+<<<<<<< HEAD
     <style>
         .container {
             max-width: 1200px;
@@ -456,6 +457,10 @@ include '../includes/admin_header.php';
             scrollbar-color: #94a3b8 #f1f5f9;
         }
     </style>
+=======
+    <link rel="stylesheet" href="../../assets/css/managebook.css">
+    <!-- CSS styling similar to owner booking-history.php -->
+>>>>>>> 37a85f460eb036c1e1c57d0c89f76801360aa90b
 </head>
 <body>
     <div class="container">
@@ -493,8 +498,13 @@ include '../includes/admin_header.php';
             </div>
             
             <!-- Bookings Table -->
+<<<<<<< HEAD
             <?php if ($result && $result->num_rows > 0): ?>
                 <div class="table-container">
+=======
+            <div class="table-container">
+                <?php if ($result && $result->num_rows > 0): ?>
+>>>>>>> 37a85f460eb036c1e1c57d0c89f76801360aa90b
                     <table>
                         <thead>
                             <tr>
@@ -515,7 +525,11 @@ include '../includes/admin_header.php';
                                     <td><?php echo $row['user_name']; ?></td>
                                     <td><?php echo $row['listing_title']; ?></td>
                                     <td><?php echo date('M d, Y', strtotime($row['move_in_date'])); ?></td>
+<<<<<<< HEAD
                                     <td><?php echo $row['duration'] . ' months'; ?></td>
+=======
+                                    <td><?php echo $row['duration'] . ' days'; ?></td>
+>>>>>>> 37a85f460eb036c1e1c57d0c89f76801360aa90b
                                     <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
                                     <td>
                                         <span class="status status-<?php echo strtolower($row['status']); ?>">
@@ -535,6 +549,7 @@ include '../includes/admin_header.php';
                             <?php endwhile; ?>
                         </tbody>
                     </table>
+<<<<<<< HEAD
                 </div>
                 
                 <!-- Pagination -->
@@ -554,15 +569,23 @@ include '../includes/admin_header.php';
                         <?php if ($page < $totalPages): ?>
                             <a href="?page=<?php echo ($page + 1); ?>&status=<?php echo $filterStatus; ?>&search=<?php echo urlencode($searchTerm); ?>">Next</a>
                         <?php endif; ?>
+=======
+                    
+                    <!-- Pagination -->
+                    <?php if ($totalPages > 1): ?>
+                        <div class="pagination">
+                            <!-- Pagination links -->
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="no-data">
+                        <i>📅</i>
+                        <h3>No booking records found</h3>
+                        <p>No booking history matches your search criteria.</p>
+>>>>>>> 37a85f460eb036c1e1c57d0c89f76801360aa90b
                     </div>
                 <?php endif; ?>
-            <?php else: ?>
-                <div class="no-data">
-                    <i>📅</i>
-                    <h3>No booking records found</h3>
-                    <p>No booking history matches your search criteria.</p>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
     <script>
