@@ -76,6 +76,7 @@ include '../includes/admin_header.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking Management</title>
+    <link rel="stylesheet" href="../../assets/css/managebook.css">
     <!-- CSS styling similar to owner booking-history.php -->
 </head>
 <body>
@@ -92,61 +93,63 @@ include '../includes/admin_header.php';
             </div>
             
             <!-- Bookings Table -->
-            <?php if ($result && $result->num_rows > 0): ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Listing</th>
-                            <th>Check-in</th>
-                            <th>Duration</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
+            <div class="table-container">
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>#<?php echo $row['id']; ?></td>
-                                <td><?php echo $row['user_name']; ?></td>
-                                <td><?php echo $row['listing_title']; ?></td>
-                                <td><?php echo date('M d, Y', strtotime($row['move_in_date'])); ?></td>
-                                <td><?php echo $row['duration'] . ' days'; ?></td>
-                                <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
-                                <td>
-                                    <span class="status status-<?php echo strtolower($row['status']); ?>">
-                                        <?php echo ucfirst($row['status']); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <a href="view_booking.php?id=<?php echo $row['id']; ?>" class="action-btn view-btn">View</a>
-                                    <a href="edit_booking.php?id=<?php echo $row['id']; ?>" class="action-btn edit-btn">Edit</a>
-                                    <a href="delete_booking.php?id=<?php echo $row['id']; ?>" 
-                                       class="action-btn delete-btn"
-                                       onclick="return confirm('Are you sure you want to permanently delete this booking? This action cannot be undone.');">
-                                        Delete
-                                    </a>
-                                </td>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Listing</th>
+                                <th>Check-in</th>
+                                <th>Duration</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-                
-                <!-- Pagination -->
-                <?php if ($totalPages > 1): ?>
-                    <div class="pagination">
-                        <!-- Pagination links -->
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td>#<?php echo $row['id']; ?></td>
+                                    <td><?php echo $row['user_name']; ?></td>
+                                    <td><?php echo $row['listing_title']; ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($row['move_in_date'])); ?></td>
+                                    <td><?php echo $row['duration'] . ' days'; ?></td>
+                                    <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
+                                    <td>
+                                        <span class="status status-<?php echo strtolower($row['status']); ?>">
+                                            <?php echo ucfirst($row['status']); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="view_booking.php?id=<?php echo $row['id']; ?>" class="action-btn view-btn">View</a>
+                                        <a href="edit_booking.php?id=<?php echo $row['id']; ?>" class="action-btn edit-btn">Edit</a>
+                                        <a href="delete_booking.php?id=<?php echo $row['id']; ?>" 
+                                           class="action-btn delete-btn"
+                                           onclick="return confirm('Are you sure you want to permanently delete this booking? This action cannot be undone.');">
+                                            Delete
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Pagination -->
+                    <?php if ($totalPages > 1): ?>
+                        <div class="pagination">
+                            <!-- Pagination links -->
+                        </div>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <div class="no-data">
+                        <i>📅</i>
+                        <h3>No booking records found</h3>
+                        <p>No booking history matches your search criteria.</p>
                     </div>
                 <?php endif; ?>
-            <?php else: ?>
-                <div class="no-data">
-                    <i>📅</i>
-                    <h3>No booking records found</h3>
-                    <p>No booking history matches your search criteria.</p>
-                </div>
-            <?php endif; ?>
+            </div>
         </div>
     </div>
 </body>

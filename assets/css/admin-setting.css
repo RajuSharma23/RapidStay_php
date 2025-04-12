@@ -1,0 +1,467 @@
+/* Settings Page Specific CSS */
+
+
+/* Main Container */
+
+.dashboard-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+
+/* Header Styles */
+
+.page-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+}
+
+
+/* Settings Container */
+
+.settings-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    /* Changed ratio for better layout */
+    gap: 2rem;
+    height: calc(100vh - 200px);
+    /* Adjust height for scrolling */
+}
+
+
+/* Column Styles */
+
+.left-column,
+.right-column {
+    overflow-y: auto;
+    padding-right: 1rem;
+    padding-bottom: 2rem;
+    height: 100%;
+}
+
+.left-column::-webkit-scrollbar,
+.right-column::-webkit-scrollbar {
+    width: 6px;
+}
+
+.left-column::-webkit-scrollbar-track,
+.right-column::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.left-column::-webkit-scrollbar-thumb,
+.right-column::-webkit-scrollbar-thumb {
+    background: #2a5298;
+    border-radius: 10px;
+}
+
+
+/* Card Styles */
+
+.settings-card {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    transition: transform 0.2s ease;
+}
+
+.settings-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.settings-card h2 {
+    color: #1e3c72;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+/* Form Styles */
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: #2a5298;
+    outline: none;
+}
+
+
+/* Button Styles */
+
+.btn-primary {
+    background: #2a5298;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+    background: #1e3c72;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 82, 152, 0.2);
+}
+
+
+/* Profile Picture Styles */
+
+.profile-pic-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #2c7be5;
+    background: #f8f9fa;
+}
+
+.profile-pic-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.profile-pic-container:hover img {
+    transform: scale(1.1);
+}
+
+.profile-pic-edit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: #3498db;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+}
+
+
+/* Alert Styles */
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #34d399;
+}
+
+.alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #f87171;
+}
+
+
+/* Modal Styles */
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 12px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalOpen 0.3s ease-out;
+}
+
+@keyframes modalOpen {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #95a5a6;
+    transition: all 0.3s;
+}
+
+.modal-close:hover {
+    color: #e74c3c;
+}
+
+.modal h3 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+
+/* Admin List Styles */
+
+.admin-list {
+    margin-top: 1.5rem;
+}
+
+.admin-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.admin-card:hover {
+    transform: translateX(4px);
+    background: #f1f5f9;
+}
+
+.admin-avatar {
+    width: 48px;
+    height: 48px;
+    background: #2a5298;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.admin-info {
+    flex: 1;
+}
+
+.admin-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.admin-email {
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+
+/* File input styling */
+
+.file-input-container {
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.file-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-label {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #f1f1f1;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.file-input-label i {
+    margin-right: 5px;
+}
+
+.selected-file {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #7f8c8d;
+}
+
+
+/* Responsive Design */
+
+@media (max-width: 768px) {
+    .settings-container {
+        grid-template-columns: 1fr;
+    }
+    .settings-card {
+        margin-bottom: 1.5rem;
+    }
+    .page-header h1 {
+        font-size: 2rem;
+    }
+    .left-column,
+    .right-column {
+        height: auto;
+        overflow-y: visible;
+    }
+}
+
+.profile-pic-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 2rem;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-pic-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-pic-edit {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.profile-pic-edit:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.crop-modal {
+    display: none;
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.crop-modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 500px;
+    position: relative;
+}
+
+.crop-preview {
+    max-width: 100%;
+    max-height: 300px;
+    margin: 1rem auto;
+    display: block;
+    border-radius: 8px;
+}
+
+.crop-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.btn-secondary {
+    background: #64748b;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background: #475569;
+}
