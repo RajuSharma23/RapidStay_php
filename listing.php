@@ -30,8 +30,21 @@ if (mysqli_num_rows($listing_result) == 0) {
 $listing = mysqli_fetch_assoc($listing_result);
 
 // Fetch listing images
-$images_query = "SELECT * FROM listing_images WHERE listing_id = $listing_id ORDER BY is_primary DESC";
+$images_query = "SELECT 
+                  id, 
+                  listing_id, 
+                  image_url AS full_image_path,
+                  image_url,
+                  is_primary 
+                FROM listing_images 
+                WHERE listing_id = $listing_id 
+                ORDER BY is_primary DESC";
 $images_result = mysqli_query($conn, $images_query);
+
+// Check for MySQL errors in image query
+if (!$images_result) {
+    error_log("Image query error: " . mysqli_error($conn));
+}
 
 // Fetch listing amenities
 $amenities_query = "SELECT a.* 
@@ -72,6 +85,8 @@ if (isset($_SESSION['user_id'])) {
 // Include header
 include 'includes/header.php';
 ?>
+
+<link rel="stylesheet" href="assets/css/style.css">
 
 <!-- Breadcrumb -->
 <div class="bg-gray-100 py-3">
@@ -148,42 +163,58 @@ include 'includes/header.php';
                     $images[] = $image;
                 }
                 
+                // Get the base directory of the project for URL construction
+                $project_dir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));
+                $base_dir = basename($project_dir);
+                
                 if (count($images) > 0):
                 ?>
                     <div class="grid grid-cols-12 gap-2">
                         <!-- Main Image -->
                         <div class="col-span-12 md:col-span-8 h-80 rounded-lg overflow-hidden">
+                            <?php 
+                            // Construct the correct image path
+                            $main_image_path = '/' . $base_dir . '/' . $images[0]['image_url'];
+                            ?>
                             <img 
-                                src="<?php echo htmlspecialchars($images[0]['image_url']); ?>" 
+                                src="<?php echo htmlspecialchars($main_image_path); ?>" 
                                 alt="<?php echo htmlspecialchars($listing['title']); ?>" 
-                                class="w-full h-full object-cover"
-                                id="main-image"
-                            >
+                                class="w-full h-full object-cover">
                         </div>
                         
                         <!-- Thumbnail Images -->
                         <div class="col-span-12 md:col-span-4 grid grid-rows-3 gap-2">
-                            <?php for ($i = 1; $i < min(count($images), 4); $i++): ?>
+                            <?php for ($i = 1; $i < min(count($images), 4); $i++): 
+                                // Construct the correct image path
+                                $thumb_image_path = '/' . $base_dir . '/' . $images[$i]['image_url'];
+                            ?>
                                 <div class="h-24 rounded-lg overflow-hidden">
-                                    <img 
-                                        src="<?php echo htmlspecialchars($images[$i]['image_url']); ?>" 
-                                        alt="<?php echo htmlspecialchars($listing['title']); ?>" 
-                                        class="w-full h-full object-cover cursor-pointer thumbnail-image"
-                                        data-src="<?php echo htmlspecialchars($images[$i]['image_url']); ?>"
-                                    >
+                                    <a href="view_image.php?listing_id=<?php echo $listing_id; ?>&image_id=<?php echo $i; ?>">
+                                        <img 
+                                            src="<?php echo htmlspecialchars($thumb_image_path); ?>" 
+                                            alt="<?php echo htmlspecialchars($listing['title']); ?>" 
+                                            class="w-full h-full object-cover cursor-pointer"
+                                        >
+                                    </a>
                                 </div>
                             <?php endfor; ?>
                             
                             <?php if (count($images) > 4): ?>
-                                <div class="h-24 rounded-lg overflow-hidden relative cursor-pointer" id="view-all-images">
-                                    <img 
-                                        src="<?php echo htmlspecialchars($images[4]['image_url']); ?>" 
-                                        alt="<?php echo htmlspecialchars($listing['title']); ?>" 
-                                        class="w-full h-full object-cover"
-                                    >
-                                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                        <span class="text-white font-medium">+<?php echo count($images) - 4; ?> more</span>
-                                    </div>
+                                <div class="h-24 rounded-lg overflow-hidden relative cursor-pointer">
+                                    <a href="gallery.php?listing_id=<?php echo $listing_id; ?>">
+                                        <?php
+                                        // Construct the correct image path for "more" thumbnail
+                                        $more_image_path = '/' . $base_dir . '/' . $images[4]['image_url'];
+                                        ?>
+                                        <img 
+                                            src="<?php echo htmlspecialchars($more_image_path); ?>" 
+                                            alt="<?php echo htmlspecialchars($listing['title']); ?>" 
+                                            class="w-full h-full object-cover"
+                                        >
+                                        <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                            <span class="text-white font-medium">+<?php echo count($images) - 4; ?> more</span>
+                                        </div>
+                                    </a>
                                 </div>
                             <?php endif; ?>
                         </div>
@@ -446,11 +477,11 @@ include 'includes/header.php';
                     </div>
                     
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md transition duration-300">
+                        <button type="submit" class="w-full bg-blue-600 btn-bg hover:bg-blue-700 text-white py-3 rounded-md transition duration-300">
                             Book Now
                         </button>
                     <?php else: ?>
-                        <a href="login.php?redirect=listing.php?id=<?php echo $listing_id; ?>" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md text-center transition duration-300">
+                        <a href="login.php?redirect=listing.php?id=<?php echo $listing_id; ?>" class="block w-full btn-bg  hover:bg-blue-700 text-white py-3 rounded-md text-center transition duration-300">
                             Login to Book
                         </a>
                     <?php endif; ?>
@@ -546,10 +577,12 @@ include 'includes/header.php';
         const nextImage = document.getElementById('next-image');
         const imageThumbnails = document.getElementById('image-thumbnails');
         
-        // All image sources
+        // All image sources - use actual paths with project directory
         const images = [
-            <?php foreach ($images as $image): ?>
-                "<?php echo htmlspecialchars($image['image_url']); ?>",
+            <?php foreach ($images as $image): 
+                $js_image_path = '/' . $base_dir . '/' . $image['full_image_path'];
+            ?>
+                "<?php echo htmlspecialchars($js_image_path); ?>",
             <?php endforeach; ?>
         ];
         
@@ -583,7 +616,7 @@ include 'includes/header.php';
             images.forEach((src, index) => {
                 const thumb = document.createElement('div');
                 thumb.className = 'w-16 h-16 flex-shrink-0 cursor-pointer rounded overflow-hidden';
-                thumb.innerHTML = `<img src="${src}" class="w-full h-full object-cover">`;
+                thumb.innerHTML = <img src="${src}" class="w-full h-full object-cover">;
                 thumb.addEventListener('click', () => {
                     currentImageIndex = index;
                     updateGalleryImage();
@@ -653,4 +686,3 @@ include 'includes/header.php';
 // Include footer
 include 'includes/footer.php';
 ?>
-

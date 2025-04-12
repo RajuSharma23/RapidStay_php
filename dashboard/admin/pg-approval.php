@@ -22,10 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($_POST['action'] === 'approve' && isset($_POST['listing_id'])) {
             $listing_id = intval($_POST['listing_id']);
             
-            // Update listing status
-            $update_query = "UPDATE listings SET is_verified = 1 WHERE id = $listing_id";
+            // Update listing status - USING PREPARED STATEMENT FOR SAFETY
+            $update_query = "UPDATE listings SET is_verified = 1, status = 'approved' WHERE id = ?";
+            $update_stmt = mysqli_prepare($conn, $update_query);
+            mysqli_stmt_bind_param($update_stmt, "i", $listing_id);
             
-            if (mysqli_query($conn, $update_query)) {
+            if (mysqli_stmt_execute($update_stmt)) {
+                mysqli_stmt_close($update_stmt);
+                
                 // Get listing details
                 $listing_query = "SELECT l.title, u.id as owner_id, u.email, u.name 
                                  FROM listings l 
@@ -36,31 +40,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_stmt_bind_param($stmt, "i", $listing_id);
                 mysqli_stmt_execute($stmt);
                 $listing_result = mysqli_stmt_get_result($stmt);
-                $listing = mysqli_fetch_assoc($listing_result);
                 
-                // Send notification to owner
-                $owner_id = $listing['owner_id'];
-                $admin_id = $_SESSION['user_id'];
-                $notification_message = sprintf(
-                    "Your PG listing '%s' has been approved and is now visible to users.",
-                    mysqli_real_escape_string($conn, $listing['title'])
-                );
-                
-                $notification_query = "INSERT INTO messages (sender_id, receiver_id, listing_id, message, created_at) 
-                                      VALUES (?, ?, ?, ?, NOW())";
-                                      
-                $stmt = mysqli_prepare($conn, $notification_query);
-                mysqli_stmt_bind_param($stmt, "iiis", $admin_id, $owner_id, $listing_id, $notification_message);
-                
-                if (mysqli_stmt_execute($stmt)) {
-                    $message = "PG listing has been approved successfully.";
+                if ($listing = mysqli_fetch_assoc($listing_result)) {
+                    // Send notification to owner
+                    $owner_id = $listing['owner_id'];
+                    $admin_id = $_SESSION['user_id'];
+                    $notification_message = sprintf(
+                        "Your PG listing '%s' has been approved and is now visible to users.",
+                        mysqli_real_escape_string($conn, $listing['title'])
+                    );
+                    
+                    $notification_query = "INSERT INTO messages (sender_id, receiver_id, listing_id, message, created_at) 
+                                         VALUES (?, ?, ?, ?, NOW())";
+                                         
+                    $notify_stmt = mysqli_prepare($conn, $notification_query);
+                    mysqli_stmt_bind_param($notify_stmt, "iiis", $admin_id, $owner_id, $listing_id, $notification_message);
+                    
+                    if (mysqli_stmt_execute($notify_stmt)) {
+                        $message = "PG listing has been approved successfully.";
+                    } else {
+                        $error = "Listing approved, but failed to send notification: " . mysqli_error($conn);
+                    }
+                    
+                    mysqli_stmt_close($notify_stmt);
                 } else {
-                    $error = "Failed to send approval notification. Please try again.";
+                    $message = "PG listing has been approved successfully.";
                 }
-                
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "Failed to approve PG listing. Please try again.";
+                $error = "Failed to approve PG listing: " . mysqli_error($conn);
             }
         }
         

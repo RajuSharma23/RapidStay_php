@@ -1,7 +1,13 @@
-// Add this to your initialization file
-define('UPLOAD_DIR', __DIR__ . '/../uploads/listings/');
+<?php
+// Create all necessary directories if they don't exist
+$upload_dirs = [
+    __DIR__ . '/../uploads',
+    __DIR__ . '/../uploads/listings',
+    __DIR__ . '/../uploads/profiles'
+];
 
-// Create upload directory if it doesn't exist
-if (!file_exists(UPLOAD_DIR)) {
-    mkdir(UPLOAD_DIR, 0755, true);
+foreach ($upload_dirs as $dir) {
+    if (!file_exists($dir)) {
+        mkdir($dir, 0755, true);
+    }
 }

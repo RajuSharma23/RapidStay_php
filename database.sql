@@ -238,3 +238,22 @@ INSERT INTO cities (name, state, image_url, is_popular) VALUES
 INSERT INTO users (name, email, phone, password, user_type, is_verified, is_active) VALUES
 ('Admin User', 'admin@rapidstay.com', '9876543210', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', TRUE, TRUE);
 
+-- Run this SQL in phpMyAdmin to create the roommates table
+
+CREATE TABLE IF NOT EXISTS `roommates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `requester_id` int(11) NOT NULL,
+  `requested_id` int(11) NOT NULL,
+  `listing_id` int(11) NOT NULL,
+  `notes` text DEFAULT NULL,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `requester_id` (`requester_id`),
+  KEY `requested_id` (`requested_id`),
+  KEY `listing_id` (`listing_id`),
+  CONSTRAINT `roommates_ibfk_1` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `roommates_ibfk_2` FOREIGN KEY (`requested_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `roommates_ibfk_3` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
