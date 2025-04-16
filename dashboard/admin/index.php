@@ -75,7 +75,7 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
 
     }
     .main-item{
-        margin-top: 50px;
+        
         /* margin-left:250px; */
 
         

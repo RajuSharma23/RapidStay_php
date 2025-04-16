@@ -102,21 +102,19 @@ include '../includes/owner_header.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Room Booking Management</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+        
         
         
         
         .container {
             width: 90%;
             max-width: 1200px;
-            margin-left: 250px;
+            margin-left: 100px;
             padding: 20px;
             background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 50px auto;
         }
         
         h1 {
@@ -285,8 +283,9 @@ include '../includes/owner_header.php';
         }
     </style>
 </head>
-<body>
-    <div class="container">
+<body >
+    
+    <div class="container overflow-auto">
         <h1>Room Booking Management System</h1>
         
         <?php echo $message; ?>
@@ -381,7 +380,7 @@ include '../includes/owner_header.php';
                             echo '<td>' . date('d-m-Y', strtotime($booking["move_in_date"])) . '</td>';
                             echo '<td>' . $booking["duration"] . ' months</td>';
                             echo '<td>' . $booking["occupants"] . '</td>';
-                            echo '<td>$' . number_format($booking["total_amount"], 2) . '</td>';
+                            echo '<td>₹' . number_format($booking["total_amount"], 2) . '</td>';
                             echo '<td class="status-' . $booking["status"] . '">' . ucfirst($booking["status"]) . '</td>';
                             echo '<td>';
                             if ($booking["status"] == 'pending') {

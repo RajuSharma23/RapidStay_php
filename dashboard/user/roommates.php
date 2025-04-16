@@ -23,26 +23,17 @@ mysqli_stmt_execute($stmt);
 $user_result = mysqli_stmt_get_result($stmt);
 $user = mysqli_fetch_assoc($user_result);
 
-// Check if roommates table exists and has correct structure
+// Check if roommates table exists
 $table_exists = false;
 $table_check = mysqli_query($conn, "SHOW TABLES LIKE 'roommates'");
 if (mysqli_num_rows($table_check) > 0) {
-    // Check if user_id column exists
-    $column_check = mysqli_query($conn, "SHOW COLUMNS FROM roommates LIKE 'user_id'");
-    if (mysqli_num_rows($column_check) > 0) {
-        $table_exists = true;
-    } else {
-        // Show error about incorrect table structure
-        $error = "The roommates table exists but has an incorrect structure. Please contact the administrator.";
-    }
-} else {
-    // Table doesn't exist - show error
-    $error = "The roommates feature is currently unavailable. Please contact the administrator.";
+    $table_exists = true;
 }
 
 // Initialize variables
 $is_listed = false;
 $roommate_data = null;
+$error = '';
 $message = '';
 
 if ($table_exists) {
@@ -54,6 +45,9 @@ if ($table_exists) {
     $check_result = mysqli_stmt_get_result($stmt);
     $is_listed = mysqli_num_rows($check_result) > 0;
     $roommate_data = $is_listed ? mysqli_fetch_assoc($check_result) : null;
+} else {
+    // Table doesn't exist - show error
+    $error = "The roommates feature is currently unavailable. Please contact the administrator.";
 }
 
 // Process form submission
@@ -178,7 +172,7 @@ include '../includes/user_header.php';
 ?>
 <style>
     .main {
-        margin-left: 250px;
+        /* margin-left: 250px; */
     }
 </style>
 <!-- Main Content -->
@@ -637,4 +631,3 @@ include '../includes/user_header.php';
 // Include footer
 include '../includes/user_footer.php';
 ?>
-

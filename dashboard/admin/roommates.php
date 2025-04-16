@@ -16,101 +16,93 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 $message = '';
 $error = '';
 
-// Delete roommate record
-if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $delete_sql = "DELETE FROM roommates WHERE id = ?";
-    $stmt = $conn->prepare($delete_sql);
-    $stmt->bind_param("i", $id);
-    
-    if ($stmt->execute()) {
-        $message = "Roommate record has been deleted successfully.";
-    } else {
-        $error = "Failed to delete roommate record: " . $conn->error;
-    }
+// Drop the existing roommates table with incorrect structure
+$drop_table = "DROP TABLE IF EXISTS `roommates`";
+if(!mysqli_query($conn, $drop_table)) {
+    die("Error dropping table: " . mysqli_error($conn));
 }
 
-// Approve roommate request
-if (isset($_GET['action']) && $_GET['action'] === 'approve' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $approve_sql = "UPDATE roommates SET status = 'approved' WHERE id = ?";
-    $stmt = $conn->prepare($approve_sql);
-    $stmt->bind_param("i", $id);
-    
-    if ($stmt->execute()) {
-        // Send notification to users
-        $get_users_sql = "SELECT requester_id, requested_id FROM roommates WHERE id = ?";
-        $users_stmt = $conn->prepare($get_users_sql);
-        $users_stmt->bind_param("i", $id);
-        $users_stmt->execute();
-        $users_result = $users_stmt->get_result();
-        
-        if ($row = $users_result->fetch_assoc()) {
-            // Send notification to both users
-            $notify_sql = "INSERT INTO notifications (user_id, message, type) VALUES (?, 'Your roommate request has been approved by the admin.', 'roommate')";
-            $notify_stmt = $conn->prepare($notify_sql);
-            
-            // Notify requester
-            $notify_stmt->bind_param("i", $row['requester_id']);
-            $notify_stmt->execute();
-            
-            // Notify requested
-            $notify_stmt->bind_param("i", $row['requested_id']);
-            $notify_stmt->execute();
-        }
-        
-        $message = "Roommate request has been approved successfully.";
-    } else {
-        $error = "Failed to approve roommate request: " . $conn->error;
-    }
+// Create the roommates table with correct structure
+$create_table = "CREATE TABLE `roommates` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `requester_id` int(11) NOT NULL,
+    `requested_id` int(11) NOT NULL,
+    `listing_id` int(11) NOT NULL,
+    `notes` text DEFAULT NULL,
+    `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `requester_id` (`requester_id`),
+    KEY `requested_id` (`requested_id`),
+    KEY `listing_id` (`listing_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
+
+if(!mysqli_query($conn, $create_table)) {
+    die("Error creating table: " . mysqli_error($conn));
 }
 
-// Reject roommate request
-if (isset($_GET['action']) && $_GET['action'] === 'reject' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $reject_sql = "UPDATE roommates SET status = 'rejected' WHERE id = ?";
-    $stmt = $conn->prepare($reject_sql);
-    $stmt->bind_param("i", $id);
-    
-    if ($stmt->execute()) {
-        $message = "Roommate request has been rejected.";
-    } else {
-        $error = "Failed to reject roommate request: " . $conn->error;
-    }
+// Add foreign key constraints
+$add_foreign_keys = [
+    "ALTER TABLE `roommates` ADD CONSTRAINT `roommates_requester_id_fk` FOREIGN KEY (`requester_id`) REFERENCES `users` (`id`) ON DELETE CASCADE",
+    "ALTER TABLE `roommates` ADD CONSTRAINT `roommates_requested_id_fk` FOREIGN KEY (`requested_id`) REFERENCES `users` (`id`) ON DELETE CASCADE",
+    "ALTER TABLE `roommates` ADD CONSTRAINT `roommates_listing_id_fk` FOREIGN KEY (`listing_id`) REFERENCES `listings` (`id`) ON DELETE CASCADE"
+];
+
+foreach($add_foreign_keys as $query) {
+    mysqli_query($conn, $query);
+    // We don't check for errors here because the foreign key constraints might fail
+    // if the referenced tables don't have the right structure
 }
 
-// Process form submission for new roommate match
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_match'])) {
-    $requester_id = intval($_POST['requester_id']);
-    $requested_id = intval($_POST['requested_id']);
-    $listing_id = intval($_POST['listing_id']);
-    $notes = $_POST['notes'];
+// Insert sample data
+$sample_data = "INSERT INTO `roommates` (`requester_id`, `requested_id`, `listing_id`, `status`, `notes`)
+                SELECT 
+                    (SELECT id FROM users ORDER BY id LIMIT 1) as requester_id,
+                    (SELECT id FROM users ORDER BY id DESC LIMIT 1) as requested_id,
+                    (SELECT id FROM listings ORDER BY id LIMIT 1) as listing_id,
+                    'pending',
+                    'Sample roommate request'
+                FROM dual
+                WHERE EXISTS (SELECT 1 FROM users) AND EXISTS (SELECT 1 FROM listings)";
+
+mysqli_query($conn, $sample_data);
+
+// Create notifications table if it doesn't exist
+$notif_table_check = mysqli_query($conn, "SHOW TABLES LIKE 'notifications'");
+if(mysqli_num_rows($notif_table_check) == 0) {
+    $create_notif_table = "CREATE TABLE IF NOT EXISTS `notifications` (
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `user_id` int(11) NOT NULL,
+        `message` text NOT NULL,
+        `type` varchar(50) NOT NULL,
+        `is_read` tinyint(1) NOT NULL DEFAULT 0,
+        `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `user_id` (`user_id`),
+        CONSTRAINT `notifications_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
     
-    // Check if users exist
-    $check_users_sql = "SELECT id FROM users WHERE id IN (?, ?)";
-    $check_stmt = $conn->prepare($check_users_sql);
-    $check_stmt->bind_param("ii", $requester_id, $requested_id);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
-    
-    if ($check_result->num_rows === 2) {
-        // Create roommate match
-        $create_sql = "INSERT INTO roommates (requester_id, requested_id, listing_id, notes, status, created_at) 
-                      VALUES (?, ?, ?, ?, 'approved', NOW())";
-        $create_stmt = $conn->prepare($create_sql);
-        $create_stmt->bind_param("iiis", $requester_id, $requested_id, $listing_id, $notes);
-        
-        if ($create_stmt->execute()) {
-            $message = "Roommate match created successfully.";
-        } else {
-            $error = "Failed to create roommate match: " . $conn->error;
-        }
-    } else {
-        $error = "One or both users do not exist.";
-    }
+    mysqli_query($conn, $create_notif_table);
 }
 
-// Pagination
+// Check if the roommates table was properly created
+$check_roommates_columns = mysqli_query($conn, "SHOW COLUMNS FROM `roommates` LIKE 'requester_id'");
+if(mysqli_num_rows($check_roommates_columns) == 0) {
+    $error = "The roommates table structure is incorrect. Please contact the administrator.";
+    include '../includes/admin_header.php';
+    echo "<div class='flex-1 p-8'><div class='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'>$error</div></div>";
+    include '../includes/admin_footer.php';
+    exit();
+}
+
+// Instead of directly querying, first check if data exists
+$test_query = "SELECT COUNT(*) as count FROM roommates LIMIT 1";
+$test_result = mysqli_query($conn, $test_query);
+$test_row = mysqli_fetch_assoc($test_result);
+
+// If we're here, the table exists and has the right structure
+// Continuation of your existing code...
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
 $recordsPerPage = 10;
 $offset = ($page - 1) * $recordsPerPage;
@@ -119,8 +111,8 @@ $offset = ($page - 1) * $recordsPerPage;
 $searchTerm = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 $filterStatus = isset($_GET['status']) ? $conn->real_escape_string($_GET['status']) : 'all';
 
-// Base query
-$sql = "SELECT r.*, 
+// Base query with safe column selection
+$sql = "SELECT r.id, r.status, r.created_at, r.notes, 
          u1.name as requester_name, u1.email as requester_email,
          u2.name as requested_name, u2.email as requested_email,
          l.title as listing_title

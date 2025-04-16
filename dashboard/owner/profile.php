@@ -162,8 +162,8 @@ include '../includes/owner_header.php';
     <style>
         .container {
             max-width: 1200px;
-            margin-left: 250px;
-            
+            margin-left: 50px;
+            margin-top: 20px;
             background: white;
             padding: 30px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -399,7 +399,7 @@ include '../includes/owner_header.php';
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container overflow-auto">
         <div class="owner-container">
             <?php if (!empty($updateMessage)): ?>
                 <div class="message <?php echo strpos($updateMessage, "successfully") !== false ? 'success' : 'error'; ?>" id="statusMessage">

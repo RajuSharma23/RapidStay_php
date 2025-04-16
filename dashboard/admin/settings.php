@@ -1,582 +1,675 @@
 <?php
-// Start session
+// Start session for user authentication
 session_start();
-
-// Include database connection and access control
-require_once '../../includes/db_connect.php';
-require_once '../../includes/access_control.php';
 
 // Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
     // Redirect to login page
-    header("Location: ../../login.php?redirect=dashboard/admin/settings.php");
+    header("Location: ../../login.php?redirect=dashboard/admin/admin-settings.php");
     exit();
 }
 
-// Get current admin data
-$admin_id = $_SESSION['user_id'];
-$admin_query = "SELECT * FROM users WHERE id = ? AND user_type = 'admin'";
-$stmt = $conn->prepare($admin_query);
-$stmt->bind_param("i", $admin_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$admin_data = $result->fetch_assoc();
-$stmt->close();
+// Database connection
+require_once '../../includes/db_connect.php';
 
-// Handle profile update
-$profile_updated = false;
-$profile_error = '';
+// Initialize variables
+$message = '';
+$error = '';
+$activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'general';
 
-if (isset($_POST['update_profile'])) {
-    $name = trim($_POST['name']);
-    $email = trim($_POST['email']);
-    $phone = trim($_POST['phone']);
+// Get all current settings
+function getSettings($conn) {
+    $settings = [];
+    $query = "SELECT setting_key, setting_value, setting_description FROM system_settings";
+    $result = mysqli_query($conn, $query);
     
-    // Validate inputs
-    if (empty($name) || empty($email)) {
-        $profile_error = "Name and email are required fields";
-    } else {
-        // Check if email already exists for another user
-        $check_query = "SELECT id FROM users WHERE email = ? AND id != ?";
-        $stmt = $conn->prepare($check_query);
-        $stmt->bind_param("si", $email, $admin_id);
-        $stmt->execute();
-        $check_result = $stmt->get_result();
-        
-        if ($check_result->num_rows > 0) {
-            $profile_error = "Email already used by another user";
-        } else {
-            // Process profile picture upload if exists
-            $profile_pic_path = $admin_data['profile_picture']; // Default to current
-            
-            if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['size'] > 0) {
-                $allowed_ext = ['jpg', 'jpeg', 'png', 'gif'];
-                $file_name = $_FILES['profile_picture']['name'];
-                $file_size = $_FILES['profile_picture']['size'];
-                $file_tmp = $_FILES['profile_picture']['tmp_name'];
-                $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-                
-                if (in_array($file_ext, $allowed_ext)) {
-                    $new_file_name = 'admin_' . $admin_id . '_' . time() . '.' . $file_ext;
-                    $upload_path = '../../uploads/profile_pictures/';
-                    
-                    // Create directory if it doesn't exist
-                    if (!file_exists($upload_path)) {
-                        mkdir($upload_path, 0777, true);
-                    }
-                    
-                    if (move_uploaded_file($file_tmp, $upload_path . $new_file_name)) {
-                        $profile_pic_path = 'uploads/profile_pictures/' . $new_file_name;
-                    }
-                }
-            }
-            
-            // Update profile in database
-            $update_query = "UPDATE users SET name = ?, email = ?, phone = ?, profile_picture = ? WHERE id = ?";
-            $stmt = $conn->prepare($update_query);
-            $stmt->bind_param("ssssi", $name, $email, $phone, $profile_pic_path, $admin_id);
-            
-            if ($stmt->execute()) {
-                $profile_updated = true;
-                
-                // Update session data
-                $_SESSION['name'] = $name;
-                
-                // Refresh admin data
-                $result = $conn->query("SELECT * FROM users WHERE id = $admin_id");
-                $admin_data = $result->fetch_assoc();
-            } else {
-                $profile_error = "Failed to update profile: " . $conn->error;
-            }
-            
-            $stmt->close();
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $settings[$row['setting_key']] = [
+                'value' => $row['setting_value'],
+                'description' => $row['setting_description']
+            ];
         }
+    }
+    
+    return $settings;
+}
+
+// Process form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Determine which settings form was submitted
+    if (isset($_POST['save_general'])) {
+        // General Settings
+        $site_name = mysqli_real_escape_string($conn, $_POST['site_name']);
+        $contact_email = mysqli_real_escape_string($conn, $_POST['contact_email']);
+        $maintenance_mode = mysqli_real_escape_string($conn, $_POST['maintenance_mode']);
+        
+        $queries = [
+            "UPDATE system_settings SET setting_value = '$site_name' WHERE setting_key = 'site_name'",
+            "UPDATE system_settings SET setting_value = '$contact_email' WHERE setting_key = 'contact_email'",
+            "UPDATE system_settings SET setting_value = '$maintenance_mode' WHERE setting_key = 'maintenance_mode'"
+        ];
+        
+        $success = true;
+        foreach ($queries as $query) {
+            if (!mysqli_query($conn, $query)) {
+                $error .= "Error updating setting: " . mysqli_error($conn) . "<br>";
+                $success = false;
+            }
+        }
+        
+        if ($success) {
+            $message = "General settings updated successfully.";
+        }
+        $activeTab = 'general';
+    }
+    elseif (isset($_POST['save_listing'])) {
+        // Listing Settings
+        $pg_approval_mode = mysqli_real_escape_string($conn, $_POST['pg_approval_mode']);
+        $auto_approved_owners = mysqli_real_escape_string($conn, $_POST['auto_approved_owners']);
+        $max_images = intval($_POST['max_images_per_listing']);
+        $default_listing_visibility = mysqli_real_escape_string($conn, $_POST['default_listing_visibility']);
+        
+        $queries = [
+            "UPDATE system_settings SET setting_value = '$pg_approval_mode' WHERE setting_key = 'pg_approval_mode'",
+            "UPDATE system_settings SET setting_value = '$auto_approved_owners' WHERE setting_key = 'auto_approved_owners'",
+            "UPDATE system_settings SET setting_value = '$max_images' WHERE setting_key = 'max_images_per_listing'",
+            "UPDATE system_settings SET setting_value = '$default_listing_visibility' WHERE setting_key = 'default_listing_visibility'"
+        ];
+        
+        $success = true;
+        foreach ($queries as $query) {
+            if (!mysqli_query($conn, $query)) {
+                $error .= "Error updating listing setting: " . mysqli_error($conn) . "<br>";
+                $success = false;
+            }
+        }
+        
+        if ($success) {
+            $message = "Listing settings updated successfully.";
+        }
+        $activeTab = 'listings';
+    }
+    elseif (isset($_POST['save_notification'])) {
+        // Notification Settings
+        $enable_email = isset($_POST['enable_email_notifications']) ? '1' : '0';
+        $enable_system = isset($_POST['enable_system_notifications']) ? '1' : '0';
+        $admin_email_recipients = mysqli_real_escape_string($conn, $_POST['admin_email_recipients']);
+        
+        $queries = [
+            "UPDATE system_settings SET setting_value = '$enable_email' WHERE setting_key = 'enable_email_notifications'",
+            "UPDATE system_settings SET setting_value = '$enable_system' WHERE setting_key = 'enable_system_notifications'",
+            "UPDATE system_settings SET setting_value = '$admin_email_recipients' WHERE setting_key = 'admin_email_recipients'"
+        ];
+        
+        $success = true;
+        foreach ($queries as $query) {
+            if (!mysqli_query($conn, $query)) {
+                $error .= "Error updating notification setting: " . mysqli_error($conn) . "<br>";
+                $success = false;
+            }
+        }
+        
+        if ($success) {
+            $message = "Notification settings updated successfully.";
+        }
+        $activeTab = 'notifications';
+    }
+    elseif (isset($_POST['save_payment'])) {
+        // Payment Settings
+        $currency = mysqli_real_escape_string($conn, $_POST['currency']);
+        $payment_gateway = mysqli_real_escape_string($conn, $_POST['payment_gateway']);
+        $service_fee_percentage = floatval($_POST['service_fee_percentage']);
+        
+        $queries = [
+            "UPDATE system_settings SET setting_value = '$currency' WHERE setting_key = 'currency'",
+            "UPDATE system_settings SET setting_value = '$payment_gateway' WHERE setting_key = 'payment_gateway'",
+            "UPDATE system_settings SET setting_value = '$service_fee_percentage' WHERE setting_key = 'service_fee_percentage'"
+        ];
+        
+        $success = true;
+        foreach ($queries as $query) {
+            if (!mysqli_query($conn, $query)) {
+                $error .= "Error updating payment setting: " . mysqli_error($conn) . "<br>";
+                $success = false;
+            }
+        }
+        
+        if ($success) {
+            $message = "Payment settings updated successfully.";
+        }
+        $activeTab = 'payments';
+    }
+    elseif (isset($_POST['save_security'])) {
+        // Security Settings
+        $login_attempts = intval($_POST['max_login_attempts']);
+        $password_expiry = intval($_POST['password_expiry_days']);
+        $enable_2fa = isset($_POST['enable_2fa']) ? '1' : '0';
+        
+        $queries = [
+            "UPDATE system_settings SET setting_value = '$login_attempts' WHERE setting_key = 'max_login_attempts'",
+            "UPDATE system_settings SET setting_value = '$password_expiry' WHERE setting_key = 'password_expiry_days'",
+            "UPDATE system_settings SET setting_value = '$enable_2fa' WHERE setting_key = 'enable_2fa'"
+        ];
+        
+        $success = true;
+        foreach ($queries as $query) {
+            if (!mysqli_query($conn, $query)) {
+                $error .= "Error updating security setting: " . mysqli_error($conn) . "<br>";
+                $success = false;
+            }
+        }
+        
+        if ($success) {
+            $message = "Security settings updated successfully.";
+        }
+        $activeTab = 'security';
     }
 }
 
-// Handle password change
-$password_updated = false;
-$password_error = '';
+// Get all settings
+$settings = getSettings($conn);
 
-if (isset($_POST['change_password'])) {
-    $current_password = $_POST['current_password'];
-    $new_password = $_POST['new_password'];
-    $confirm_password = $_POST['confirm_password'];
-    
-    // Verify current password
-    if (!password_verify($current_password, $admin_data['password'])) {
-        $password_error = "Current password is incorrect";
-    } else if (strlen($new_password) < 8) {
-        $password_error = "New password must be at least 8 characters long";
-    } else if ($new_password !== $confirm_password) {
-        $password_error = "New passwords do not match";
-    } else {
-        // Hash new password
-        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-        
-        // Update password in database
-        $update_query = "UPDATE users SET password = ? WHERE id = ?";
-        $stmt = $conn->prepare($update_query);
-        $stmt->bind_param("si", $hashed_password, $admin_id);
-        
-        if ($stmt->execute()) {
-            $password_updated = true;
-        } else {
-            $password_error = "Failed to update password: " . $conn->error;
-        }
-        
-        $stmt->close();
-    }
-}
-
-// Handle add new admin
-$admin_added = false;
-$admin_error = '';
-
-if (isset($_POST['add_admin'])) {
-    $admin_name = trim($_POST['admin_name']);
-    $admin_email = trim($_POST['admin_email']);
-    $admin_password = $_POST['admin_password'];
-    $admin_phone = trim($_POST['admin_phone']);
-    
-    // Validate inputs
-    if (empty($admin_name) || empty($admin_email) || empty($admin_password)) {
-        $admin_error = "Name, email and password are required fields";
-    } else if (strlen($admin_password) < 8) {
-        $admin_error = "Password must be at least 8 characters long";
-    } else {
-        // Check if email already exists
-        $check_query = "SELECT id FROM users WHERE email = ?";
-        $stmt = $conn->prepare($check_query);
-        $stmt->bind_param("s", $admin_email);
-        $stmt->execute();
-        $check_result = $stmt->get_result();
-        
-        if ($check_result->num_rows > 0) {
-            $admin_error = "Email already used by another user";
-        } else {
-            // Hash password
-            $hashed_password = password_hash($admin_password, PASSWORD_DEFAULT);
-            $user_type = 'admin';
-            
-            // Add new admin to database
-            $insert_query = "INSERT INTO users (name, email, password, phone, user_type) VALUES (?, ?, ?, ?, ?)";
-            $stmt = $conn->prepare($insert_query);
-            $stmt->bind_param("sssss", $admin_name, $admin_email, $hashed_password, $admin_phone, $user_type);
-            
-            if ($stmt->execute()) {
-                $admin_added = true;
-            } else {
-                $admin_error = "Failed to add new admin: " . $conn->error;
-            }
-            
-            $stmt->close();
-        }
-    }
+// Get owner list for auto-approved owners
+$owners_query = "SELECT id, name, email FROM users WHERE user_type = 'owner' ORDER BY name";
+$owners_result = mysqli_query($conn, $owners_query);
+$owners = [];
+while ($owner = mysqli_fetch_assoc($owners_result)) {
+    $owners[] = $owner;
 }
 
 // Include header
 include '../includes/admin_header.php';
 ?>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Settings - RapidStay</title>
-    <link rel="stylesheet" href="../../assets/css//admin-setting.css">
-    <style>
-        .crop-modal {
-            display: none;
-            position: fixed;
-            z-index: 1001;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6);
-        }
-        
-        .crop-modal-content {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            max-width: 600px;
-            text-align: center;
-        }
-        
-        .crop-preview {
-            max-width: 100%;
-            max-height: 300px;
-            margin: 20px auto;
-            display: block;
-        }
-        
-        .crop-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .crop-actions button {
-            padding: 8px 16px;
-            cursor: pointer;
-        }
-        
-        /* Improved profile pic container */
-        .profile-pic-container {
-            position: relative;
-            width: 150px;  /* Increased size */
-            height: 150px; /* Increased size */
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #2c7be5;
-        }
-        
-        .profile-pic-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* This ensures the image covers the area well */
-        }
-        
-        .profile-pic-edit {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: #2c7be5;
-            color: white;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        
-        .profile-pic-edit:hover {
-            background: #1a68d1;
-        }
-    </style>
-</head>
-<body>
-    <div class="dashboard-container">
-        <div class="page-header">
-            <h1>
-                <i class="fas fa-cog fa-fw"></i>
-                <span>Admin Dashboard</span>
-            </h1>
-            <p>Manage your profile, security settings, and administrative controls</p>
-        </div>
-        
-        <?php if ($profile_updated || $password_updated || $admin_added): ?>
-        <div class="alert alert-success fade-in">
-            <i class="fas fa-check-circle"></i>
-            <?php 
-                if ($profile_updated) echo "Profile updated successfully";
-                if ($password_updated) echo "Password changed successfully";
-                if ($admin_added) echo "New admin added successfully";
-            ?>
-        </div>
-        <?php endif; ?>
-        
-        <div class="settings-container">
-            <div class="left-column">
-                <!-- Profile Settings -->
-                <div class="settings-card">
-                    <h2><i class="fas fa-user-circle"></i> Profile Settings</h2>
-                    
-                    <?php if (!empty($profile_error)): ?>
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> <?php echo $profile_error; ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <form action="" method="post" enctype="multipart/form-data">
-                        <div class="profile-pic-container">
-                            <?php if (!empty($admin_data['profile_picture']) && $admin_data['profile_picture'] != 'NULL'): ?>
-                                <img src="../../<?php echo $admin_data['profile_picture']; ?>" alt="Profile Picture">
-                            <?php else: ?>
-                                <img src="../../assets/images/default-avatar.png" alt="Default Avatar">
-                            <?php endif; ?>
-                            <label for="profile_picture" class="profile-pic-edit">
-                                <i class="fas fa-camera"></i>
-                            </label>
-                            <input type="file" id="profile_picture" name="profile_picture" style="display: none;">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" id="name" name="name" class="form-control" value="<?php echo htmlspecialchars($admin_data['name']); ?>" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" class="form-control" value="<?php echo htmlspecialchars($admin_data['email']); ?>" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="phone">Phone</label>
-                            <input type="text" id="phone" name="phone" class="form-control" value="<?php echo htmlspecialchars($admin_data['phone']); ?>">
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" name="update_profile" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Update Profile
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <!-- Password Settings -->
-                <div class="settings-card">
-                    <h2><i class="fas fa-lock"></i> Change Password</h2>
-                    
-                    <?php if (!empty($password_error)): ?>
-                        <div class="alert alert-danger">
-                            <i class="fas fa-exclamation-circle"></i> <?php echo $password_error; ?>
-                        </div>
-                    <?php endif; ?>
-                    
-                    <form action="" method="post">
-                        <div class="form-group">
-                            <label for="current_password">Current Password</label>
-                            <input type="password" id="current_password" name="current_password" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="new_password">New Password</label>
-                            <input type="password" id="new_password" name="new_password" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="confirm_password">Confirm New Password</label>
-                            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" name="change_password" class="btn btn-primary">
-                                <i class="fas fa-key"></i> Change Password
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="right-column">
-                <!-- Admin Management -->
-                <div class="settings-card">
-                    <h2><i class="fas fa-users-cog"></i> Admin Management</h2>
-                    
-                    <button id="add-admin-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">
-                        <i class="fas fa-user-plus"></i> Add New Admin
-                    </button>
-                    
-                    <div class="admin-list">
-                        <h3>Current Admins</h3>
-                        
-                        <?php
-                        // Get all admins
-                        $admin_list_query = "SELECT id, name, email, profile_picture FROM users WHERE user_type = 'admin'";
-                        $admin_list_result = $conn->query($admin_list_query);
-                        
-                        if ($admin_list_result && $admin_list_result->num_rows > 0) {
-                            while ($admin = $admin_list_result->fetch_assoc()) {
-                                $initials = strtoupper(substr($admin['name'], 0, 1));
-                                ?>
-                                <div class="admin-card">
-                                    <div class="admin-avatar">
-                                        <?php echo $initials; ?>
-                                    </div>
-                                    <div class="admin-info">
-                                        <div class="admin-name"><?php echo htmlspecialchars($admin['name']); ?></div>
-                                        <div class="admin-email"><?php echo htmlspecialchars($admin['email']); ?></div>
-                                    </div>
-                                </div>
-                                <?php
-                            }
-                        } else {
-                            echo '<p>No admin users found.</p>';
-                        }
-                        ?>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="flex-1 p-8 overflow-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">System Settings</h1>
+        <p class="text-gray-600">Configure all aspects of the RapidStay platform</p>
     </div>
     
-    <!-- Add Admin Modal -->
-    <div id="add-admin-modal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <h3><i class="fas fa-user-plus"></i> Add New Admin</h3>
-            
-            <?php if (!empty($admin_error)): ?>
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-circle"></i> <?php echo $admin_error; ?>
-                </div>
-            <?php endif; ?>
-            
-            <form action="" method="post">
-                <div class="form-group">
-                    <label for="admin_name">Name</label>
-                    <input type="text" id="admin_name" name="admin_name" class="form-control" required>
+    <?php if (!empty($message)): ?>
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6 flex justify-between items-center">
+            <span><?php echo $message; ?></span>
+            <button type="button" class="text-green-700" onclick="this.parentElement.style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    <?php endif; ?>
+    
+    <?php if (!empty($error)): ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex justify-between items-center">
+            <span><?php echo $error; ?></span>
+            <button type="button" class="text-red-700" onclick="this.parentElement.style.display='none'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    <?php endif; ?>
+    
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- Tabs Navigation -->
+        <div class="flex border-b overflow-x-auto">
+            <a href="?tab=general" class="px-6 py-4 font-medium <?php echo $activeTab === 'general' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'; ?>">
+                <i class="fas fa-cog mr-2"></i> General
+            </a>
+            <a href="?tab=listings" class="px-6 py-4 font-medium <?php echo $activeTab === 'listings' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'; ?>">
+                <i class="fas fa-home mr-2"></i> Listings
+            </a>
+            <a href="?tab=notifications" class="px-6 py-4 font-medium <?php echo $activeTab === 'notifications' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'; ?>">
+                <i class="fas fa-bell mr-2"></i> Notifications
+            </a>
+            <a href="?tab=payments" class="px-6 py-4 font-medium <?php echo $activeTab === 'payments' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'; ?>">
+                <i class="fas fa-rupee-sign mr-2"></i> Payments
+            </a>
+            <a href="?tab=security" class="px-6 py-4 font-medium <?php echo $activeTab === 'security' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'; ?>">
+                <i class="fas fa-shield-alt mr-2"></i> Security
+            </a>
+        </div>
+        
+        <!-- General Settings -->
+        <div id="general-settings" class="p-6 <?php echo $activeTab === 'general' ? '' : 'hidden'; ?>">
+            <form method="POST" action="settings.php?tab=general">
+                <h2 class="text-xl font-semibold mb-6">General Settings</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="site_name" class="block text-sm font-medium text-gray-700 mb-1">Site Name</label>
+                        <input 
+                            type="text" 
+                            id="site_name" 
+                            name="site_name" 
+                            value="<?php echo htmlspecialchars($settings['site_name']['value'] ?? 'RapidStay'); ?>" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        >
+                    </div>
+                    
+                    <div>
+                        <label for="contact_email" class="block text-sm font-medium text-gray-700 mb-1">Contact Email</label>
+                        <input 
+                            type="email" 
+                            id="contact_email" 
+                            name="contact_email" 
+                            value="<?php echo htmlspecialchars($settings['contact_email']['value'] ?? 'contact@rapidstay.com'); ?>" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        >
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="admin_email">Email</label>
-                    <input type="email" id="admin_email" name="admin_email" class="form-control" required>
+                <div class="mb-6">
+                    <label for="maintenance_mode" class="block text-sm font-medium text-gray-700 mb-1">Maintenance Mode</label>
+                    <select 
+                        id="maintenance_mode" 
+                        name="maintenance_mode" 
+                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="off" <?php echo ($settings['maintenance_mode']['value'] ?? 'off') === 'off' ? 'selected' : ''; ?>>Off</option>
+                        <option value="on" <?php echo ($settings['maintenance_mode']['value'] ?? 'off') === 'on' ? 'selected' : ''; ?>>On</option>
+                    </select>
+                    <p class="text-sm text-gray-500 mt-1">When enabled, the site will display a maintenance message to regular users. Admins can still log in.</p>
                 </div>
                 
-                <div class="form-group">
-                    <label for="admin_password">Password</label>
-                    <input type="password" id="admin_password" name="admin_password" class="form-control" required>
+                <div class="flex justify-end">
+                    <button type="submit" name="save_general" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Save General Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Listing Settings -->
+        <div id="listing-settings" class="p-6 <?php echo $activeTab === 'listings' ? '' : 'hidden'; ?>">
+            <form method="POST" action="settings.php?tab=listings">
+                <h2 class="text-xl font-semibold mb-6">Listing Settings</h2>
+                
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-medium mb-4">PG Approval Settings</h3>
+                    
+                    <div class="mb-4">
+                        <label for="pg_approval_mode" class="block text-sm font-medium text-gray-700 mb-1">Approval Mode</label>
+                        <select 
+                            id="pg_approval_mode" 
+                            name="pg_approval_mode" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="manual" <?php echo ($settings['pg_approval_mode']['value'] ?? 'manual') === 'manual' ? 'selected' : ''; ?>>
+                                Manual Approval (Admin review required)
+                            </option>
+                            <option value="auto" <?php echo ($settings['pg_approval_mode']['value'] ?? 'manual') === 'auto' ? 'selected' : ''; ?>>
+                                Auto Approval (No review required)
+                            </option>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Determines how new PG listings are processed when submitted by owners
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="auto_approved_owners" class="block text-sm font-medium text-gray-700 mb-1">Auto-Approved Owners</label>
+                        <select 
+                            id="auto_approved_owners_select" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                        >
+                            <option value="">-- Select Owner --</option>
+                            <?php foreach ($owners as $owner): ?>
+                                <option value="<?php echo $owner['id']; ?>" data-name="<?php echo htmlspecialchars($owner['name']); ?>">
+                                    <?php echo htmlspecialchars($owner['name'] . ' (' . $owner['email'] . ')'); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="button" onclick="addSelectedOwner()" class="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-sm">
+                            Add Selected Owner
+                        </button>
+                        
+                        <div id="selected-owners-container" class="flex flex-wrap gap-2 mt-3">
+                            <!-- Selected owners will be displayed here -->
+                        </div>
+                        
+                        <input 
+                            type="hidden" 
+                            id="auto_approved_owners" 
+                            name="auto_approved_owners" 
+                            value="<?php echo htmlspecialchars($settings['auto_approved_owners']['value'] ?? ''); ?>"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">
+                            Comma-separated list of owner IDs whose listings are automatically approved (only applies if Manual Approval is selected)
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="default_listing_visibility" class="block text-sm font-medium text-gray-700 mb-1">Default Listing Visibility</label>
+                        <select 
+                            id="default_listing_visibility" 
+                            name="default_listing_visibility" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="visible" <?php echo ($settings['default_listing_visibility']['value'] ?? 'visible') === 'visible' ? 'selected' : ''; ?>>Visible</option>
+                            <option value="hidden" <?php echo ($settings['default_listing_visibility']['value'] ?? 'visible') === 'hidden' ? 'selected' : ''; ?>>Hidden</option>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Default visibility for new listings after approval
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <label for="max_images_per_listing" class="block text-sm font-medium text-gray-700 mb-1">Maximum Images Per Listing</label>
+                        <input 
+                            type="number" 
+                            id="max_images_per_listing" 
+                            name="max_images_per_listing" 
+                            value="<?php echo intval($settings['max_images_per_listing']['value'] ?? 10); ?>" 
+                            min="1" 
+                            max="50" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">
+                            Maximum number of images that can be uploaded per listing
+                        </p>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="admin_phone">Phone (Optional)</label>
-                    <input type="text" id="admin_phone" name="admin_phone" class="form-control">
+                <div class="flex justify-end">
+                    <button type="submit" name="save_listing" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Save Listing Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Notification Settings -->
+        <div id="notification-settings" class="p-6 <?php echo $activeTab === 'notifications' ? '' : 'hidden'; ?>">
+            <form method="POST" action="settings.php?tab=notifications">
+                <h2 class="text-xl font-semibold mb-6">Notification Settings</h2>
+                
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-medium mb-4">Email Notifications</h3>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input 
+                                type="checkbox" 
+                                name="enable_email_notifications" 
+                                class="rounded"
+                                <?php echo ($settings['enable_email_notifications']['value'] ?? '1') === '1' ? 'checked' : ''; ?>
+                            >
+                            <span class="ml-2">Enable Email Notifications</span>
+                        </label>
+                        <p class="text-sm text-gray-500 mt-1 ml-6">
+                            Send email notifications for important system events
+                        </p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="admin_email_recipients" class="block text-sm font-medium text-gray-700 mb-1">Admin Email Recipients</label>
+                        <input 
+                            type="text" 
+                            id="admin_email_recipients" 
+                            name="admin_email_recipients" 
+                            value="<?php echo htmlspecialchars($settings['admin_email_recipients']['value'] ?? ''); ?>" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="admin@example.com, manager@example.com"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">
+                            Comma-separated list of email addresses that will receive admin notifications
+                        </p>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <button type="submit" name="add_admin" class="btn btn-primary" style="width: 100%;">
-                        <i class="fas fa-plus-circle"></i> Add Admin
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-medium mb-4">System Notifications</h3>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input 
+                                type="checkbox" 
+                                name="enable_system_notifications" 
+                                class="rounded"
+                                <?php echo ($settings['enable_system_notifications']['value'] ?? '1') === '1' ? 'checked' : ''; ?>
+                            >
+                            <span class="ml-2">Enable In-App Notifications</span>
+                        </label>
+                        <p class="text-sm text-gray-500 mt-1 ml-6">
+                            Display in-app notifications for users
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" name="save_notification" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Save Notification Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Payment Settings -->
+        <div id="payment-settings" class="p-6 <?php echo $activeTab === 'payments' ? '' : 'hidden'; ?>">
+            <form method="POST" action="settings.php?tab=payments">
+                <h2 class="text-xl font-semibold mb-6">Payment Settings</h2>
+                
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                            <select 
+                                id="currency" 
+                                name="currency" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="INR" <?php echo ($settings['currency']['value'] ?? 'INR') === 'INR' ? 'selected' : ''; ?>>Indian Rupee (₹)</option>
+                                <option value="USD" <?php echo ($settings['currency']['value'] ?? 'INR') === 'USD' ? 'selected' : ''; ?>>US Dollar ($)</option>
+                                <option value="EUR" <?php echo ($settings['currency']['value'] ?? 'INR') === 'EUR' ? 'selected' : ''; ?>>Euro (€)</option>
+                                <option value="GBP" <?php echo ($settings['currency']['value'] ?? 'INR') === 'GBP' ? 'selected' : ''; ?>>British Pound (£)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="payment_gateway" class="block text-sm font-medium text-gray-700 mb-1">Payment Gateway</label>
+                            <select 
+                                id="payment_gateway" 
+                                name="payment_gateway" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="razorpay" <?php echo ($settings['payment_gateway']['value'] ?? 'razorpay') === 'razorpay' ? 'selected' : ''; ?>>Razorpay</option>
+                                <option value="stripe" <?php echo ($settings['payment_gateway']['value'] ?? 'razorpay') === 'stripe' ? 'selected' : ''; ?>>Stripe</option>
+                                <option value="paypal" <?php echo ($settings['payment_gateway']['value'] ?? 'razorpay') === 'paypal' ? 'selected' : ''; ?>>PayPal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="text-lg font-medium mb-4">Service Fees</h3>
+                    
+                    <div class="mb-4">
+                        <label for="service_fee_percentage" class="block text-sm font-medium text-gray-700 mb-1">Service Fee Percentage (%)</label>
+                        <input 
+                            type="number" 
+                            id="service_fee_percentage" 
+                            name="service_fee_percentage" 
+                            value="<?php echo floatval($settings['service_fee_percentage']['value'] ?? 5); ?>" 
+                            min="0" 
+                            max="100" 
+                            step="0.01" 
+                            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                        <p class="text-sm text-gray-500 mt-1">
+                            Percentage fee charged on each transaction
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" name="save_payment" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Save Payment Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Security Settings -->
+        <div id="security-settings" class="p-6 <?php echo $activeTab === 'security' ? '' : 'hidden'; ?>">
+            <form method="POST" action="settings.php?tab=security">
+                <h2 class="text-xl font-semibold mb-6">Security Settings</h2>
+                
+                <div class="mb-6 bg-gray-50 p-4 rounded-lg border">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="max_login_attempts" class="block text-sm font-medium text-gray-700 mb-1">Max Login Attempts</label>
+                            <input 
+                                type="number" 
+                                id="max_login_attempts" 
+                                name="max_login_attempts" 
+                                value="<?php echo intval($settings['max_login_attempts']['value'] ?? 5); ?>" 
+                                min="1" 
+                                max="10" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                            <p class="text-sm text-gray-500 mt-1">
+                                Number of login attempts before account is temporarily locked
+                            </p>
+                        </div>
+                        
+                        <div>
+                            <label for="password_expiry_days" class="block text-sm font-medium text-gray-700 mb-1">Password Expiry (Days)</label>
+                            <input 
+                                type="number" 
+                                id="password_expiry_days" 
+                                name="password_expiry_days" 
+                                value="<?php echo intval($settings['password_expiry_days']['value'] ?? 90); ?>" 
+                                min="0" 
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                            <p class="text-sm text-gray-500 mt-1">
+                                Number of days before passwords expire (0 = never)
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="flex items-center">
+                            <input 
+                                type="checkbox" 
+                                name="enable_2fa" 
+                                class="rounded"
+                                <?php echo ($settings['enable_2fa']['value'] ?? '0') === '1' ? 'checked' : ''; ?>
+                            >
+                            <span class="ml-2">Enable Two-Factor Authentication</span>
+                        </label>
+                        <p class="text-sm text-gray-500 mt-1 ml-6">
+                            Require two-factor authentication for admin users
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" name="save_security" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md">
+                        Save Security Settings
                     </button>
                 </div>
             </form>
         </div>
     </div>
+</div>
+
+<script>
+    // Setup auto-approved owners selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const ownersInput = document.getElementById('auto_approved_owners');
+        const ownersContainer = document.getElementById('selected-owners-container');
+        
+        // Initial population of selected owners
+        if (ownersInput.value) {
+            const ownerIds = ownersInput.value.split(',');
+            populateSelectedOwners(ownerIds);
+        }
+    });
     
-    <!-- Crop Modal -->
-    <div id="crop-modal" class="crop-modal">
-        <div class="crop-modal-content">
-            <h3><i class="fas fa-crop-alt"></i> Selected Image</h3>
-            <img id="crop-preview" class="crop-preview" alt="Preview">
-            <p id="selected-filename"></p>
-            <div class="crop-actions">
-                <button id="crop-cancel" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button id="crop-confirm" class="btn btn-primary">
-                    <i class="fas fa-check"></i> Confirm
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Font Awesome -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
-    <script>
-        // Show preview of selected image
-        document.getElementById('profile_picture').addEventListener('change', function() {
-            const file = this.files[0];
-            if (!file) return;
-            
-            const cropModal = document.getElementById('crop-modal');
-            const preview = document.getElementById('crop-preview');
-            const filenameElement = document.getElementById('selected-filename');
-            
-            // Display filename
-            filenameElement.textContent = 'Selected file: ' + file.name;
-            
-            // Create preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                
-                // Show the crop modal
-                cropModal.style.display = 'block';
-                
-                // Also update the profile picture preview
-                const profilePreview = document.querySelector('.profile-pic-container img');
-                if (profilePreview) {
-                    // Store original src to revert if canceled
-                    profilePreview.dataset.originalSrc = profilePreview.src;
-                    profilePreview.src = e.target.result;
-                }
-            };
-            reader.readAsDataURL(file);
-        });
+    function populateSelectedOwners(ownerIds) {
+        const ownersContainer = document.getElementById('selected-owners-container');
+        ownersContainer.innerHTML = '';
         
-        // Cancel button
-        document.getElementById('crop-cancel').addEventListener('click', function() {
-            const cropModal = document.getElementById('crop-modal');
-            cropModal.style.display = 'none';
+        // Get all options from the select element
+        const selectElement = document.getElementById('auto_approved_owners_select');
+        const options = selectElement.options;
+        
+        // Find each owner by ID and add to container
+        ownerIds.forEach(id => {
+            // Skip empty IDs
+            if (!id.trim()) return;
             
-            // Reset the file input
-            document.getElementById('profile_picture').value = '';
-            
-            // Revert profile picture
-            const profilePreview = document.querySelector('.profile-pic-container img');
-            if (profilePreview && profilePreview.dataset.originalSrc) {
-                profilePreview.src = profilePreview.dataset.originalSrc;
-            }
-        });
-        
-        // Confirm button - would normally handle cropping here
-        // For now, just close modal and keep the preview
-        document.getElementById('crop-confirm').addEventListener('click', function() {
-            const cropModal = document.getElementById('crop-modal');
-            cropModal.style.display = 'none';
-            
-            // Keep the current preview (cropping would be implemented here in a production app)
-            // The actual image will be uploaded when the form is submitted
-        });
-        
-        // Modal functionality
-        const modal = document.getElementById('add-admin-modal');
-        const addAdminBtn = document.getElementById('add-admin-btn');
-        const closeBtn = document.querySelector('.modal-close');
-        
-        addAdminBtn.addEventListener('click', function() {
-            modal.style.display = 'block';
-        });
-        
-        closeBtn.addEventListener('click', function() {
-            modal.style.display = 'none';
-        });
-        
-        window.addEventListener('click', function(event) {
-            // Close admin modal when clicking outside
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-            
-            // Close crop modal when clicking outside
-            const cropModal = document.getElementById('crop-modal');
-            if (event.target == cropModal) {
-                cropModal.style.display = 'none';
-                // Reset the file input
-                document.getElementById('profile_picture').value = '';
-                
-                // Revert profile picture
-                const profilePreview = document.querySelector('.profile-pic-container img');
-                if (profilePreview && profilePreview.dataset.originalSrc) {
-                    profilePreview.src = profilePreview.dataset.originalSrc;
+            let ownerName = '';
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].value === id) {
+                    ownerName = options[i].dataset.name;
+                    break;
                 }
             }
+            
+            // If no name found, use ID as fallback
+            if (!ownerName) ownerName = `Owner ${id}`;
+            
+            addOwnerTag(id.trim(), ownerName);
         });
+    }
+    
+    function addSelectedOwner() {
+        const select = document.getElementById('auto_approved_owners_select');
+        const selectedOption = select.options[select.selectedIndex];
         
-        // Only show the admin modal on refresh if there was an admin error
-        // and we're explicitly told to show it (not on every page load)
-        <?php if (!empty($admin_error) && isset($_POST['add_admin'])): ?>
-        document.addEventListener('DOMContentLoaded', function() {
-            modal.style.display = 'block';
-        });
-        <?php endif; ?>
-    </script>
-</body>
-</html>
+        if (select.value) {
+            const ownerId = select.value;
+            const ownerName = selectedOption.dataset.name;
+            
+            // Check if already added
+            const existingOwners = document.getElementById('auto_approved_owners').value.split(',');
+            if (existingOwners.includes(ownerId)) return;
+            
+            // Add to UI
+            addOwnerTag(ownerId, ownerName);
+            
+            // Update hidden input
+            updateOwnersInput();
+        }
+    }
+    
+    function addOwnerTag(ownerId, ownerName) {
+        const container = document.getElementById('selected-owners-container');
+        
+        const tag = document.createElement('div');
+        tag.className = 'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center';
+        tag.dataset.id = ownerId;
+        
+        tag.innerHTML = `
+            ${ownerName}
+            <button type="button" onclick="removeOwner('${ownerId}')" class="ml-2 text-blue-600 hover:text-blue-800">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        container.appendChild(tag);
+    }
+    
+    function removeOwner(ownerId) {
+        // Remove from UI
+        const tag = document.querySelector(`.selected-owners-container [data-id="${ownerId}"]`);
+        if (tag) tag.remove();
+        
+        // Update hidden input
+        updateOwnersInput();
+    }
+    
+    function updateOwnersInput() {
+        const container = document.getElementById('selected-owners-container');
+        const tags = container.querySelectorAll('[data-id]');
+        const ownerIds = Array.from(tags).map(tag => tag.dataset.id);
+        
+        document.getElementById('auto_approved_owners').value = ownerIds.join(',');
+    }
+</script>
 
 <?php
-// Close connection
-$conn->close();
+// Include footer
+include '../includes/admin_footer.php';
 ?>

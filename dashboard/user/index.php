@@ -74,14 +74,14 @@ include '../includes/user_header.php';
     }
     .main-item{
         margin-top: 50px;
-        margin-left:250px;
+        /* margin-left:250px; */
 
         
     }
     </style>
 </head>
 <body>
-    <div id="main">
+    <div id="main " class="overflow-auto">
  
 <!-- Main Content -->
 <div class="main-item flex-1 p-8 overflow-auto">
@@ -229,9 +229,9 @@ include '../includes/user_header.php';
                                 </a>
                             </div>
                         </div>
-                    <?php endwhile; ?>
+                        <?php endwhile; ?>
+                    </div>
                 </div>
-            </div>
         <?php else: ?>
             <div class="p-6 text-center">
                 <div class="text-gray-400 mb-4">

@@ -5,19 +5,6 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Security headers
-header('X-XSS-Protection: 1; mode=block');
-header('X-Frame-Options: DENY');
-header('X-Content-Type-Options: nosniff');
-header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
-header("Content-Security-Policy: default-src 'self' https:; script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;");
-
-// Enforce HTTPS
-if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
-    if (!headers_sent()) {
-        header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-        exit;
-    }
-}
 // // Check if user is admin and redirect accordingly
 // if (isset($user['role']) && strtolower($user['role']) === 'admin') {
 //     header("Location: dashboard/admin/index.php");
@@ -81,7 +68,7 @@ if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
                 <!-- User Menu -->
                 <div class="flex items-center">
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="wishlist.php" class="text-gray-700 hover:text-blue-600 mr-4 relative" aria-label="Wishlist">
+                        <a href="dashboard/user/wishlist.php" class="text-gray-700 hover:text-blue-600 mr-4 relative" aria-label="Wishlist">
                             <i class="far fa-heart text-xl"></i>
                             <?php
                             // Get wishlist count

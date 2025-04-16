@@ -77,6 +77,8 @@ include '../includes/owner_header.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking History</title>
+<!-- <link rel="stylesheet" href="../../assets/css/style.css"> -->
+
     <style>
         * {
             margin: 0;
@@ -91,16 +93,13 @@ include '../includes/owner_header.php';
         }
         
         .container {
-            width: 95%;
-            max-width: 1200px;
-            
+            width: 100%;
             padding: 20px;
-            margin-left: 200px;
+            box-sizing: border-box;
         }
+        
         .contener-item{
-            
-            margin-top: 50px;
-            
+            margin-top: 20px;
         }
         
         .page-header {
@@ -393,9 +392,9 @@ include '../includes/owner_header.php';
         }
         @media (max-width: 1200px) {
             .container {
-                width: calc(100% - 250px);
-                margin-left: 250px;
+                width: 100%;
                 padding: 15px;
+                box-sizing: border-box;
             }
             
             .summary-box {
@@ -405,8 +404,7 @@ include '../includes/owner_header.php';
         
         @media (max-width: 992px) {
             .container {
-                width: calc(100% - 200px);
-                margin-left: 200px;
+                width: 100%;
             }
             
             .summary-box {
@@ -568,7 +566,7 @@ include '../includes/owner_header.php';
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container overflow-auto">
         <div class="contener-item">
         <div class="page-header">
             <h1>Booking History</h1>
@@ -698,19 +696,19 @@ include '../includes/owner_header.php';
             ?>
             <div class="summary-box Revenue">
                 <div class="summary-title Revenue-text">Total Revenue</div>
-                <div class="summary-value">$<?php echo number_format($revenue['total'], 2); ?></div>
+                <div class="summary-value">₹<?php echo number_format($revenue['total'], 2); ?></div>
             </div> 
             <div class="summary-box Revenue-confirmed">
                 <div class="summary-title Confirmed-text">Confirmed Revenue</div>
-                <div class="summary-value">$<?php echo number_format($revenue['confirmed'] ?? 0, 2); ?></div>
+                <div class="summary-value">₹<?php echo number_format($revenue['confirmed'] ?? 0, 2); ?></div>
             </div>
             <div class="summary-box Revenue-pending">
                 <div class="summary-title Pending-text">Pending Revenue</div>
-                <div class="summary-value">$<?php echo number_format($revenue['pending'] ?? 0, 2); ?></div>
+                <div class="summary-value">₹<?php echo number_format($revenue['pending'] ?? 0, 2); ?></div>
             </div>
             <div class="summary-box Revenue-completed">
                 <div class="summary-title Completed-text">Completed Revenue</div>
-                <div class="summary-value">$<?php echo number_format($revenue['completed'] ?? 0, 2); ?></div>
+                <div class="summary-value">₹<?php echo number_format($revenue['completed'] ?? 0, 2); ?></div>
             </div>
             </div>
         </div>
@@ -768,7 +766,7 @@ include '../includes/owner_header.php';
                                     <?php echo ucfirst($row['status']); ?>
                                 </span>
                             </td>
-                            <td>$<?php echo number_format($row['total_amount'], 2); ?></td>
+                            <td>₹<?php echo number_format($row['total_amount'], 2); ?></td>
                             <td>
                                 <a href="view_booking.php?id=<?php echo $row['id']; ?>" class="action-btn view-btn">View</a>
                                 <?php if ($row['status'] === 'pending' || $row['status'] === 'confirmed'): ?>

@@ -12,6 +12,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'owner') {
 // Database connection
 require_once '../../includes/db_connect.php';
 
+// Get maximum allowed images from settings
+$max_images = 10; // Default value
+$max_images_query = "SELECT setting_value FROM system_settings WHERE setting_key = 'max_images_per_listing'";
+$max_images_result = mysqli_query($conn, $max_images_query);
+if ($max_images_result && mysqli_num_rows($max_images_result) > 0) {
+    $max_images = intval(mysqli_fetch_assoc($max_images_result)['setting_value']);
+    if ($max_images <= 0) {
+        $max_images = 10; // Fallback if setting is invalid
+    }
+}
+
 // Get owner ID
 $owner_id = $_SESSION['user_id'];
 
@@ -54,15 +65,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         empty($available_from) || $min_duration <= 0 || $max_occupants <= 0 || empty($furnishing_type)) {
         $error = "Please fill in all required fields.";
     } else {
-        // Insert listing
-        $insert_query = "INSERT INTO listings (user_id, title, description, type, price, security_deposit, 
-                        address, locality, city, state, zipcode, available_from, min_duration, max_occupants, 
-                        furnishing_type, property_size, bathroom_count, is_shared_bathroom, is_verified, is_active, created_at) 
-                        VALUES ($owner_id, '$title', '$description', '$type', $price, $security_deposit, 
-                        '$address', '$locality', '$city', '$state', '$zipcode', '$available_from', $min_duration, $max_occupants, 
-                        '$furnishing_type', $property_size, $bathroom_count, $is_shared_bathroom, 0, 1, NOW())";
-        
-        if (mysqli_query($conn, $insert_query)) {
+        // Check system settings for automatic approval
+        $auto_approval = false;
+        $settings_query = "SELECT setting_value FROM system_settings WHERE setting_key = 'pg_approval_mode'";
+        $settings_result = mysqli_query($conn, $settings_query);
+        if ($settings_result && mysqli_num_rows($settings_result) > 0) {
+            $approval_mode = mysqli_fetch_assoc($settings_result)['setting_value'];
+            if ($approval_mode === 'auto') {
+                $auto_approval = true;
+            } else {
+                // Check if owner is in auto-approved list
+                $auto_approved_query = "SELECT setting_value FROM system_settings WHERE setting_key = 'auto_approved_owners'";
+                $auto_approved_result = mysqli_query($conn, $auto_approved_query);
+                if ($auto_approved_result && mysqli_num_rows($auto_approved_result) > 0) {
+                    $auto_approved_owners = mysqli_fetch_assoc($auto_approved_result)['setting_value'];
+                    $auto_approved_array = explode(',', $auto_approved_owners);
+                    if (in_array($owner_id, $auto_approved_array)) {
+                        $auto_approval = true;
+                    }
+                }
+            }
+        }
+
+        // Set is_verified based on approval settings
+        $is_verified = $auto_approval ? 1 : 0;
+        $is_active = 1; // Define this variable to use in the bind_param
+
+        // Insert listing - FIXED QUERY
+        $listing_query = "INSERT INTO listings (user_id, title, description, type, price, security_deposit, 
+                         address, locality, city, state, zipcode, available_from, min_duration, max_occupants, 
+                         furnishing_type, property_size, bathroom_count, is_shared_bathroom, is_verified, is_active, created_at) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+        $stmt = mysqli_prepare($conn, $listing_query);
+        mysqli_stmt_bind_param($stmt, "isssddsssssiiisdiiii", 
+            $owner_id,           // i - integer
+            $title,              // s - string
+            $description,        // s - string 
+            $type,               // s - string
+            $price,              // d - double
+            $security_deposit,   // d - double
+            $address,            // s - string
+            $locality,           // s - string
+            $city,               // s - string
+            $state,              // s - string
+            $zipcode,            // s - string
+            $available_from,     // s - string (date as string, not integer)
+            $min_duration,       // i - integer
+            $max_occupants,      // i - integer
+            $furnishing_type,    // s - string (not integer)
+            $property_size,      // d - double (not integer)
+            $bathroom_count,     // i - integer
+            $is_shared_bathroom, // i - integer 
+            $is_verified,        // i - integer
+            $is_active);         // i - integer
+
+        if (mysqli_stmt_execute($stmt)) {
             $listing_id = mysqli_insert_id($conn);
             
             // Insert amenities
@@ -89,16 +147,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $images = $_FILES['images'];
                 $image_count = count($images['name']);
+                $uploaded_count = 0;
+                $skipped_count = 0;
                 
-                for ($i = 0; $i < $image_count; $i++) {
+                for ($i = 0; $i < $image_count && $uploaded_count < $max_images; $i++) {
                     if ($images['error'][$i] === 0) {
                         if (!in_array($images['type'][$i], $allowed_types)) {
                             $error .= "File type not allowed for " . $images['name'][$i] . ". ";
+                            $skipped_count++;
                             continue;
                         }
                         
                         if ($images['size'][$i] > $max_size) {
                             $error .= "File size too large for " . $images['name'][$i] . ". ";
+                            $skipped_count++;
                             continue;
                         }
                         
@@ -106,17 +168,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $target_file = $upload_dir . $filename;
                         
                         if (move_uploaded_file($images['tmp_name'][$i], $target_file)) {
-                            // Save image to database
-                            $image_url = '/uploads/listings/' . $listing_id . '/' . $filename;
+                            // Save image to database with CORRECT path (remove /htdocs/)
+                            $image_url = '/Rapidstay1/uploads/listings/' . $listing_id . '/' . $filename;
                             $is_primary = ($i === 0) ? 1 : 0; // First image is primary
                             
                             $image_query = "INSERT INTO listing_images (listing_id, image_url, is_primary, created_at) 
                                           VALUES ($listing_id, '$image_url', $is_primary, NOW())";
                             mysqli_query($conn, $image_query);
+                            $uploaded_count++;
                         } else {
                             $error .= "Failed to upload " . $images['name'][$i] . ". ";
+                            $skipped_count++;
                         }
                     }
+                }
+                
+                // If there were more images than allowed, add a warning
+                if ($image_count > $max_images) {
+                    $message = "Your PG listing has been submitted successfully and is pending approval. ";
+                    $message .= "Note: Only $max_images out of $image_count images were uploaded (maximum limit reached).";
+                } else {
+                    $message = "Your PG listing has been submitted successfully and is pending approval.";
+                }
+                
+                // If some images were skipped due to errors
+                if ($skipped_count > 0) {
+                    $error = "Warning: $skipped_count images could not be uploaded due to errors. " . $error;
                 }
             }
             
@@ -137,7 +214,7 @@ include '../includes/owner_header.php';
 
 <style>
     .main-content{
-        margin-left:200px;
+        /* margin-left:200px; */
     }
 </style>
 <!-- Main Content -->
@@ -443,13 +520,14 @@ include '../includes/owner_header.php';
                             <i class="fas fa-cloud-upload-alt text-3xl"></i>
                         </div>
                         <p class="text-gray-700 font-medium mb-1">Click to upload images</p>
-                        <p class="text-gray-500 text-sm">Upload up to 10 images (JPEG, PNG, JPG)</p>
+                        <p class="text-gray-500 text-sm">Upload up to <?php echo $max_images; ?> images (JPEG, PNG, JPG)</p>
                         <p class="text-gray-500 text-sm">Max size: 5MB per image</p>
                     </label>
                     
                     <div id="image-previews" class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
                         <!-- Image previews will be displayed here -->
                     </div>
+                    <div id="image-warning" class="mt-3 text-red-600 hidden"></div>
                 </div>
             </div>
             
@@ -466,10 +544,21 @@ include '../includes/owner_header.php';
     // Display image previews
     function displayImagePreviews(input) {
         const previewContainer = document.getElementById('image-previews');
+        const warningContainer = document.getElementById('image-warning');
         previewContainer.innerHTML = '';
+        warningContainer.innerHTML = '';
+        warningContainer.classList.add('hidden');
+        
+        const maxImages = <?php echo $max_images; ?>;
         
         if (input.files && input.files.length > 0) {
-            for (let i = 0; i < Math.min(input.files.length, 10); i++) {
+            if (input.files.length > maxImages) {
+                warningContainer.innerHTML = `Warning: You selected ${input.files.length} images, but only the first ${maxImages} will be uploaded.`;
+                warningContainer.classList.remove('hidden');
+            }
+            
+            // Show previews for all images (or max allowed)
+            for (let i = 0; i < Math.min(input.files.length, maxImages); i++) {
                 const file = input.files[i];
                 const reader = new FileReader();
                 
@@ -481,14 +570,72 @@ include '../includes/owner_header.php';
                     img.src = e.target.result;
                     img.className = 'w-full h-32 object-cover rounded-lg';
                     
+                    // Add a label if it's the primary image
+                    if (i === 0) {
+                        const primaryBadge = document.createElement('div');
+                        primaryBadge.className = 'absolute top-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-bl-lg';
+                        primaryBadge.textContent = 'Primary';
+                        preview.appendChild(primaryBadge);
+                    }
+                    
                     preview.appendChild(img);
                     previewContainer.appendChild(preview);
                 }
                 
                 reader.readAsDataURL(file);
             }
+            
+            // If there are more files than allowed, add faded previews
+            if (input.files.length > maxImages) {
+                for (let i = maxImages; i < Math.min(input.files.length, maxImages + 3); i++) {
+                    const preview = document.createElement('div');
+                    preview.className = 'relative opacity-50';
+                    
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'w-full h-32 bg-gray-200 flex items-center justify-center rounded-lg';
+                    placeholder.innerHTML = '<i class="fas fa-ban text-gray-400 text-2xl"></i>';
+                    
+                    const label = document.createElement('div');
+                    label.className = 'absolute bottom-0 left-0 right-0 bg-red-600 text-white text-xs px-2 py-1 text-center';
+                    label.textContent = 'Exceeds limit';
+                    
+                    preview.appendChild(placeholder);
+                    preview.appendChild(label);
+                    previewContainer.appendChild(preview);
+                }
+                
+                if (input.files.length > maxImages + 3) {
+                    const more = document.createElement('div');
+                    more.className = 'w-full h-32 bg-gray-200 flex items-center justify-center rounded-lg opacity-50';
+                    more.innerHTML = `<span class="text-gray-600">+${input.files.length - maxImages - 3} more</span>`;
+                    previewContainer.appendChild(more);
+                }
+            }
         }
     }
+</script>
+
+<script>
+    // Safe initialization of user menu functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent redefinition of userMenuButton
+        if (typeof userMenuToggle !== 'function') {
+            // User menu toggle functionality
+            window.userMenuToggle = function() {
+                const userMenuDropdown = document.getElementById('user-menu-dropdown');
+                if (userMenuDropdown) {
+                    userMenuDropdown.classList.toggle('hidden');
+                }
+            }
+            
+            // Only attach event listener if it hasn't been attached
+            const userMenuButton = document.getElementById('user-menu-button');
+            if (userMenuButton && !userMenuButton.dataset.listenerAttached) {
+                userMenuButton.addEventListener('click', userMenuToggle);
+                userMenuButton.dataset.listenerAttached = 'true';
+            }
+        }
+    });
 </script>
 
 <?php

@@ -38,7 +38,7 @@ include '../includes/user_header.php';
 ?>
 <style>
     .main{
-        margin-left:250px;
+        /* margin-left:250px; */
     }
 </style>
 <!-- Main Content -->

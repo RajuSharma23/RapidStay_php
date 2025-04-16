@@ -4,6 +4,7 @@ session_start();
 
 // Database connection
 require_once 'includes/db_connect.php';
+require_once 'includes/image_helpers.php';  // Add this line
 
 // Fetch featured listings
 $featured_query = "SELECT l.*, 

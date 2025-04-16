@@ -268,7 +268,7 @@ input[type="checkbox"]:checked + span {
 
 /* footer */
 .footer{
-  background-color: #070d5ef0;
+  background: linear-gradient(to right, #4c57ef, #070d5ef0);
   
 }
 .footer-copyright{

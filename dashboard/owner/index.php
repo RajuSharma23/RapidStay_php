@@ -64,8 +64,8 @@ $recent_bookings_result = mysqli_query($conn, $recent_bookings_query);
         position: relative;
     }
     .main-item{
-        margin-top: 50px;
-        margin-left:200px;
+        /* margin-top: 50px; */
+        
 
         
     }

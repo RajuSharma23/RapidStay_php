@@ -12,6 +12,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
 // Database connection
 require_once '../../includes/db_connect.php';
 
+// Include image helper functions
+require_once '../../includes/image_helpers.php';
+
 // Process approval actions
 $message = '';
 $error = '';
@@ -22,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($_POST['action'] === 'approve' && isset($_POST['listing_id'])) {
             $listing_id = intval($_POST['listing_id']);
             
-            // Update listing status - USING PREPARED STATEMENT FOR SAFETY
-            $update_query = "UPDATE listings SET is_verified = 1, status = 'approved' WHERE id = ?";
+            // Update listing status - FIXED QUERY TO REMOVE NON-EXISTENT COLUMN
+            $update_query = "UPDATE listings SET is_verified = 1 WHERE id = ?";
             $update_stmt = mysqli_prepare($conn, $update_query);
             mysqli_stmt_bind_param($update_stmt, "i", $listing_id);
             
@@ -76,44 +79,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $listing_id = intval($_POST['listing_id']);
             $rejection_reason = $_POST['rejection_reason'];
             
-            // Get listing details
-            $listing_query = "SELECT l.title, u.id as owner_id, u.email, u.name 
-                             FROM listings l 
-                             JOIN users u ON l.user_id = u.id 
-                             WHERE l.id = ?";
-                             
-            $stmt = mysqli_prepare($conn, $listing_query);
-            mysqli_stmt_bind_param($stmt, "i", $listing_id);
-            mysqli_stmt_execute($stmt);
-            $listing_result = mysqli_stmt_get_result($stmt);
+            // Update listing status to rejected (using value 2 for rejected)
+            $update_query = "UPDATE listings SET is_verified = 2 WHERE id = ?";
+            $update_stmt = mysqli_prepare($conn, $update_query);
+            mysqli_stmt_bind_param($update_stmt, "i", $listing_id);
             
-            if (mysqli_num_rows($listing_result) > 0) {
-                $listing = mysqli_fetch_assoc($listing_result);
+            if (mysqli_stmt_execute($update_stmt)) {
+                mysqli_stmt_close($update_stmt);
                 
-                // Send notification to owner
-                $owner_id = $listing['owner_id'];
-                $admin_id = $_SESSION['user_id'];
-                $notification_message = sprintf(
-                    "Your PG listing '%s' has been rejected for the following reason: %s",
-                    mysqli_real_escape_string($conn, $listing['title']),
-                    mysqli_real_escape_string($conn, $rejection_reason)
-                );
+                // Get listing details
+                $listing_query = "SELECT l.title, u.id as owner_id, u.email, u.name 
+                                 FROM listings l 
+                                 JOIN users u ON l.user_id = u.id 
+                                 WHERE l.id = ?";
+                                 
+                $stmt = mysqli_prepare($conn, $listing_query);
+                mysqli_stmt_bind_param($stmt, "i", $listing_id);
+                mysqli_stmt_execute($stmt);
+                $listing_result = mysqli_stmt_get_result($stmt);
                 
-                $notification_query = "INSERT INTO messages (sender_id, receiver_id, listing_id, message, created_at) 
-                                      VALUES (?, ?, ?, ?, NOW())";
-                                      
-                $stmt = mysqli_prepare($conn, $notification_query);
-                mysqli_stmt_bind_param($stmt, "iiis", $admin_id, $owner_id, $listing_id, $notification_message);
-                
-                if (mysqli_stmt_execute($stmt)) {
-                    $message = "Rejection notification has been sent to the owner.";
+                if (mysqli_num_rows($listing_result) > 0) {
+                    $listing = mysqli_fetch_assoc($listing_result);
+                    
+                    // Send notification to owner
+                    $owner_id = $listing['owner_id'];
+                    $admin_id = $_SESSION['user_id'];
+                    $notification_message = sprintf(
+                        "Your PG listing '%s' has been rejected for the following reason: %s",
+                        mysqli_real_escape_string($conn, $listing['title']),
+                        mysqli_real_escape_string($conn, $rejection_reason)
+                    );
+                    
+                    $notification_query = "INSERT INTO messages (sender_id, receiver_id, listing_id, message, created_at) 
+                                          VALUES (?, ?, ?, ?, NOW())";
+                                          
+                    $stmt = mysqli_prepare($conn, $notification_query);
+                    mysqli_stmt_bind_param($stmt, "iiis", $admin_id, $owner_id, $listing_id, $notification_message);
+                    
+                    if (mysqli_stmt_execute($stmt)) {
+                        $message = "PG listing has been rejected and notification sent to the owner.";
+                    } else {
+                        $error = "Listing rejected, but failed to send notification: " . mysqli_error($conn);
+                    }
+                    
+                    mysqli_stmt_close($stmt);
                 } else {
-                    $error = "Failed to send rejection notification. Please try again.";
+                    $message = "PG listing has been rejected successfully.";
                 }
-                
-                mysqli_stmt_close($stmt);
             } else {
-                $error = "PG listing not found.";
+                $error = "Failed to reject PG listing: " . mysqli_error($conn);
             }
         }
     }
@@ -191,7 +205,9 @@ include '../includes/admin_header.php';
                                 $image_result = mysqli_query($conn, $image_query);
                                 if (mysqli_num_rows($image_result) > 0) {
                                     $image = mysqli_fetch_assoc($image_result)['image_url'];
-                                    echo '<img src="' . htmlspecialchars($image) . '" alt="' . htmlspecialchars($listing['title']) . '" class="w-full h-48 object-cover rounded-lg">';
+                                    // Use the image helper function to get the correct URL
+                                    $formatted_image_url = getImageUrl($image);
+                                    echo '<img src="' . htmlspecialchars($formatted_image_url) . '" alt="' . htmlspecialchars($listing['title']) . '" class="w-full h-48 object-cover rounded-lg">';
                                 } else {
                                     echo '<div class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500"><i class="fas fa-home text-3xl"></i></div>';
                                 }

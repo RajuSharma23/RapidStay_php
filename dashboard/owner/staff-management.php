@@ -283,10 +283,10 @@ include '../includes/owner_header.php';
 ?>
 <style>
     .main-content {
-        margin-left: 200px;
+        /* margin-left: 200px; */
     }
     .container{
-        margin-top:50px;
+        /* margin-top:50px; */
 
     }
     .modal {

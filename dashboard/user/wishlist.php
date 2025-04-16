@@ -29,11 +29,11 @@ include '../includes/user_header.php';
 ?>
 <style>
     .main{
-        margin-left:250px;
+        /* margin-left:250px; */
         
     }
     .header{
-        margin-top:100px;
+        /* margin-top:100px; */
     }
 </style>
 
@@ -56,6 +56,7 @@ include '../includes/user_header.php';
                             alt="<?php echo htmlspecialchars($item['title']); ?>" 
                             class="w-full h-48 object-cover"
                         >
+                        
                         
                         <div class="absolute top-3 right-3">
                             <span class="px-2 py-1 bg-white text-xs font-medium rounded-full">

@@ -393,7 +393,7 @@ include '../includes/owner_header.php';
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Total Amount</div>
-                            <div class="detail-value">$<?php echo number_format($booking['total_amount'], 2); ?></div>
+                            <div class="detail-value">₹<?php echo number_format($booking['total_amount'], 2); ?></div>
                         </div>
                         <div class="detail-item">
                             <div class="detail-label">Payment Status</div>

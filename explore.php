@@ -4,6 +4,8 @@ session_start();
 
 // Database connection
 require_once 'includes/db_connect.php';
+// Add image helpers
+require_once 'includes/image_helpers.php';
 
 // Get filter parameters
 $type = isset($_GET['type']) ? $_GET['type'] : '';
@@ -47,6 +49,10 @@ if ($premium) {
 
 $query .= " AND l.price BETWEEN $min_price AND $max_price";
 $count_query .= " AND l.price BETWEEN $min_price AND $max_price";
+
+// Add this to the WHERE clause in your query
+$query .= " AND (l.is_verified = 1)";
+$count_query .= " AND (l.is_verified = 1)";
 
 // Add amenities filter if selected
 if (!empty($amenities) && is_array($amenities)) {

@@ -4,6 +4,7 @@ session_start();
 
 // Database connection
 require_once 'includes/db_connect.php';
+require_once 'includes/image_helpers.php';
 
 // Get listing ID
 $listing_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -173,10 +174,11 @@ include 'includes/header.php';
                         <!-- Main Image -->
                         <div class="col-span-12 md:col-span-8 h-80 rounded-lg overflow-hidden">
                             <?php 
-                            // Construct the correct image path
-                            $main_image_path = '/' . $base_dir . '/' . $images[0]['image_url'];
+                            // Use the helper function for image path
+                            $main_image_path = getImageUrl($images[0]['image_url']);
                             ?>
                             <img 
+                                id="main-image"
                                 src="<?php echo htmlspecialchars($main_image_path); ?>" 
                                 alt="<?php echo htmlspecialchars($listing['title']); ?>" 
                                 class="w-full h-full object-cover">
@@ -185,17 +187,15 @@ include 'includes/header.php';
                         <!-- Thumbnail Images -->
                         <div class="col-span-12 md:col-span-4 grid grid-rows-3 gap-2">
                             <?php for ($i = 1; $i < min(count($images), 4); $i++): 
-                                // Construct the correct image path
-                                $thumb_image_path = '/' . $base_dir . '/' . $images[$i]['image_url'];
+                                $thumb_image_path = getImageUrl($images[$i]['image_url']);
                             ?>
                                 <div class="h-24 rounded-lg overflow-hidden">
-                                    <a href="view_image.php?listing_id=<?php echo $listing_id; ?>&image_id=<?php echo $i; ?>">
-                                        <img 
-                                            src="<?php echo htmlspecialchars($thumb_image_path); ?>" 
-                                            alt="<?php echo htmlspecialchars($listing['title']); ?>" 
-                                            class="w-full h-full object-cover cursor-pointer"
-                                        >
-                                    </a>
+                                    <img 
+                                        src="<?php echo htmlspecialchars($thumb_image_path); ?>" 
+                                        alt="<?php echo htmlspecialchars($listing['title']); ?>" 
+                                        data-src="<?php echo htmlspecialchars($thumb_image_path); ?>"
+                                        class="w-full h-full object-cover cursor-pointer thumbnail-image"
+                                    >
                                 </div>
                             <?php endfor; ?>
                             
@@ -204,7 +204,7 @@ include 'includes/header.php';
                                     <a href="gallery.php?listing_id=<?php echo $listing_id; ?>">
                                         <?php
                                         // Construct the correct image path for "more" thumbnail
-                                        $more_image_path = '/' . $base_dir . '/' . $images[4]['image_url'];
+                                        $more_image_path = getImageUrl($images[4]['image_url']);
                                         ?>
                                         <img 
                                             src="<?php echo htmlspecialchars($more_image_path); ?>" 
@@ -256,7 +256,42 @@ include 'includes/header.php';
                     ?>
                 </div>
             </div>
-            
+            <!-- Owner Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                <div class="flex items-center mb-4">
+                    <img 
+                        src="<?php echo !empty($listing['owner_image']) ? htmlspecialchars($listing['owner_image']) : 'assets/images/default-user.png'; ?>" 
+                        alt="<?php echo htmlspecialchars($listing['owner_name']); ?>" 
+                        class="w-16 h-16 rounded-full mr-4 object-cover"
+                    >
+                    <div>
+                        <h3 class="font-bold"><?php echo htmlspecialchars($listing['owner_name']); ?></h3>
+                        <p class="text-gray-500 text-sm">
+                            Member since <?php echo date('M Y', strtotime($listing['owner_joined'])); ?>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        <span class="text-gray-700">Identity verified</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-phone-alt text-blue-500 mr-2"></i>
+                        <span class="text-gray-700">Phone verified</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-blue-500 mr-2"></i>
+                        <span class="text-gray-700">Email verified</span>
+                    </div>
+                </div>
+                
+                <a href="owner_profile.php?id=<?php echo $listing['user_id']; ?>" class="block text-center text-blue-600 hover:underline">
+                    View Profile
+                </a>
+            </div><br>
+
             <!-- Location -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-8">
                 <h2 class="text-xl font-bold mb-4">Location</h2>
@@ -498,43 +533,11 @@ include 'includes/header.php';
                 </div>
             </div>
             
-            <!-- Owner Card -->
-            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
-                <div class="flex items-center mb-4">
-                    <img 
-                        src="<?php echo !empty($listing['owner_image']) ? htmlspecialchars($listing['owner_image']) : 'assets/images/default-user.png'; ?>" 
-                        alt="<?php echo htmlspecialchars($listing['owner_name']); ?>" 
-                        class="w-16 h-16 rounded-full mr-4 object-cover"
-                    >
-                    <div>
-                        <h3 class="font-bold"><?php echo htmlspecialchars($listing['owner_name']); ?></h3>
-                        <p class="text-gray-500 text-sm">
-                            Member since <?php echo date('M Y', strtotime($listing['owner_joined'])); ?>
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="space-y-2 mb-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                        <span class="text-gray-700">Identity verified</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-phone-alt text-blue-500 mr-2"></i>
-                        <span class="text-gray-700">Phone verified</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-envelope text-blue-500 mr-2"></i>
-                        <span class="text-gray-700">Email verified</span>
-                    </div>
-                </div>
-                
-                <a href="owner_profile.php?id=<?php echo $listing['user_id']; ?>" class="block text-center text-blue-600 hover:underline">
-                    View Profile
-                </a>
-            </div>
+            
         </div>
+        
     </div>
+    
 </div>
 
 <!-- Image Gallery Modal -->
@@ -553,7 +556,7 @@ include 'includes/header.php';
                 <i class="fas fa-chevron-right"></i>
             </button>
             
-            <img id="gallery-image" src="/placeholder.svg" alt="Gallery Image" class="max-h-[80vh] mx-auto">
+            <img id="gallery-image" src="assets/images/placeholder.jpg" alt="Gallery Image" class="max-h-[80vh] mx-auto">
         </div>
         
         <div class="mt-4 flex justify-center">
@@ -577,10 +580,11 @@ include 'includes/header.php';
         const nextImage = document.getElementById('next-image');
         const imageThumbnails = document.getElementById('image-thumbnails');
         
-        // All image sources - use actual paths with project directory
+        // All image sources - use the full URL format
         const images = [
             <?php foreach ($images as $image): 
-                $js_image_path = '/' . $base_dir . '/' . $image['full_image_path'];
+                // Use the helper function for consistent formatting
+                $js_image_path = getImageUrl($image['image_url']);
             ?>
                 "<?php echo htmlspecialchars($js_image_path); ?>",
             <?php endforeach; ?>
@@ -601,7 +605,9 @@ include 'includes/header.php';
             viewAllImages.addEventListener('click', openGallery);
         }
         
-        mainImage.addEventListener('click', openGallery);
+        if (mainImage) {
+            mainImage.addEventListener('click', openGallery);
+        }
         
         function openGallery() {
             galleryModal.classList.remove('hidden');
@@ -616,7 +622,8 @@ include 'includes/header.php';
             images.forEach((src, index) => {
                 const thumb = document.createElement('div');
                 thumb.className = 'w-16 h-16 flex-shrink-0 cursor-pointer rounded overflow-hidden';
-                thumb.innerHTML = <img src="${src}" class="w-full h-full object-cover">;
+                // FIX: Properly format the HTML string with backticks
+                thumb.innerHTML = `<img src="${src}" class="w-full h-full object-cover">`;
                 thumb.addEventListener('click', () => {
                     currentImageIndex = index;
                     updateGalleryImage();
